@@ -39,6 +39,35 @@ node_modules/.installed: package.json package-lock.json
 	npm ci
 	touch node_modules/.installed
 
+## Testing
+#####################################################################
+
+.PHONY: unit-test
+unit-test: go-test ## Runs all unit tests.
+
+.PHONY: go-test
+go-test: ## Runs Go unit tests.
+	@set -e;\
+		go mod vendor; \
+		extraargs=""; \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			extraargs="-v"; \
+		fi; \
+		go test $$extraargs -mod=vendor -race -coverprofile=coverage.out -covermode=atomic ./...
+
+## Benchmarking
+#####################################################################
+
+.PHONY: go-benchmark
+go-benchmark: ## Runs Go benchmarks.
+	@set -e;\
+		go mod vendor; \
+		extraargs=""; \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			extraargs="-v"; \
+		fi; \
+		go test $$extraargs -bench=. -count=$(TESTCOUNT) -benchtime=$(BENCHTIME) -run='^#' ./...
+
 ## Tools
 #####################################################################
 
@@ -64,7 +93,7 @@ autogen: ## Runs autogen on code files.
 		fi;
 
 .PHONY: format
-format: md-format yaml-format ## Format all files
+format: go-format md-format yaml-format ## Format all files
 
 .PHONY: md-format
 md-format: node_modules/.installed ## Format Markdown files.
@@ -74,11 +103,20 @@ md-format: node_modules/.installed ## Format Markdown files.
 yaml-format: node_modules/.installed ## Format YAML files.
 	@npx prettier --write --no-error-on-unmatched-pattern "**/*.yml" "**/*.yaml"
 
+.PHONY: go-format
+go-format: ## Format Go files (gofumpt).
+	@# TODO: Format using gci
+	@set -euo pipefail;\
+		files=$$(git ls-files '*.go'); \
+		if [ "$${files}" != "" ]; then \
+			gofumpt $${files}; \
+		fi
+
 ## Linters
 #####################################################################
 
 .PHONY: lint
-lint: yamllint actionlint markdownlint ## Run all linters.
+lint: golangci-lint yamllint actionlint markdownlint ## Run all linters.
 
 .PHONY: actionlint
 actionlint: ## Runs the actionlint linter.
@@ -121,3 +159,19 @@ yamllint: ## Runs the yamllint linter.
 			extraargs="-f github"; \
 		fi; \
 		yamllint --strict -c .yamllint.yaml . $$extraargs
+
+.PHONY: golangci-lint
+golangci-lint: ## Runs the golangci-lint linter.
+	@set -e;\
+		extraargs=""; \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			extraargs="--out-format github-actions"; \
+		fi; \
+		golangci-lint run -c .golangci.yml ./... $$extraargs
+
+## Maintenance
+#####################################################################
+
+.PHONY: clean
+clean: ## Delete temporary files.
+	rm -rf vendor node_modules coverage.out

@@ -1,4 +1,4 @@
-# Copyright 2023 Google LLC
+# Copyright 2024 Ian Lewis
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,18 @@
 SHELL := /bin/bash
 OUTPUT_FORMAT ?= $(shell if [ "${GITHUB_ACTIONS}" == "true" ]; then echo "github"; else echo ""; fi)
 REPO_NAME = $(shell basename "$$(pwd)")
+
+# The help command prints targets in groups. Help documentation in the Makefile
+# uses comments with double hash marks (##). Documentation is printed by the
+# help target in the order in appears in the Makefile.
+#
+# Make targets can be documented with double hash marks as follows:
+#
+#	target-name: ## target documentation.
+#
+# Groups can be added with the following style:
+#
+#	## Group name
 
 .PHONY: help
 help: ## Shows all targets and help from the Makefile (this message).
@@ -38,6 +50,14 @@ package-lock.json:
 node_modules/.installed: package.json package-lock.json
 	npm ci
 	touch node_modules/.installed
+
+.venv/bin/activate:
+	python -m venv .venv
+
+.venv/.installed: .venv/bin/activate requirements.txt
+	./.venv/bin/pip install -r requirements.txt --require-hashes
+	touch .venv/.installed
+
 
 ## Testing
 #####################################################################
@@ -71,8 +91,8 @@ go-benchmark: ## Runs Go benchmarks.
 ## Tools
 #####################################################################
 
-.PHONY: autogen
-autogen: ## Runs autogen on code files.
+.PHONY: license-headers
+license-headers: ## Update license headers.
 	@set -euo pipefail; \
 		files=$$( \
 			git ls-files \
@@ -83,33 +103,52 @@ autogen: ## Runs autogen on code files.
 				'*.yaml' '**/*.yaml' \
 				'*.yml' '**/*.yml' \
 		); \
+		name=$$(git config user.name); \
+		if [ "$${name}" == "" ]; then \
+			>&2 echo "git user.name is required."; \
+			>&2 echo "Set it up using:"; \
+			>&2 echo "git config user.name \"John Doe\""; \
+		fi; \
 		for filename in $${files}; do \
 			if ! ( head "$${filename}" | grep -iL "Copyright" > /dev/null ); then \
-				autogen -i --no-code --no-tlc -c "Google LLC" -l apache "$${filename}"; \
+				autogen -i --no-code --no-tlc -c "$${name}" -l apache "$${filename}"; \
 			fi; \
 		done; \
 		if ! ( head Makefile | grep -iL "Copyright" > /dev/null ); then \
-			autogen -i --no-code --no-tlc -c "Google LLC" -l apache Makefile; \
+			autogen -i --no-code --no-tlc -c "$${name}" -l apache Makefile; \
 		fi;
 
 .PHONY: format
-format: go-format md-format yaml-format ## Format all files
+format: md-format yaml-format ## Format all files
 
 .PHONY: md-format
 md-format: node_modules/.installed ## Format Markdown files.
-	@npx prettier --write --no-error-on-unmatched-pattern "**/*.md" "**/*.markdown"
+	@set -euo pipefail; \
+		files=$$( \
+			git ls-files \
+				'*.md' '**/*.md' \
+				'*.markdown' '**/*.markdown' \
+		); \
+		npx prettier --write --no-error-on-unmatched-pattern $${files}
 
 .PHONY: yaml-format
 yaml-format: node_modules/.installed ## Format YAML files.
-	@npx prettier --write --no-error-on-unmatched-pattern "**/*.yml" "**/*.yaml"
+	@set -euo pipefail; \
+		files=$$( \
+			git ls-files \
+				'*.yml' '**/*.yml' \
+				'*.yaml' '**/*.yaml' \
+		); \
+		npx prettier --write --no-error-on-unmatched-pattern $${files}
+
 
 .PHONY: go-format
 go-format: ## Format Go files (gofumpt).
-	@# TODO: Format using gci
 	@set -euo pipefail;\
 		files=$$(git ls-files '*.go'); \
 		if [ "$${files}" != "" ]; then \
 			gofumpt $${files}; \
+			gci write  --skip-generated -s standard -s default -s "prefix(github.com/ianlewis/go-dictzip)" $${files}; \
 		fi
 
 ## Linters
@@ -136,6 +175,11 @@ actionlint: ## Runs the actionlint linter.
 .PHONY: markdownlint
 markdownlint: node_modules/.installed ## Runs the markdownlint linter.
 	@set -euo pipefail;\
+		files=$$( \
+			git ls-files \
+				'*.md' '**/*.md' \
+				'*.markdown' '**/*.markdown' \
+		); \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 			exit_code=0; \
 			while IFS="" read -r p && [ -n "$$p" ]; do \
@@ -145,20 +189,25 @@ markdownlint: node_modules/.installed ## Runs the markdownlint linter.
 				message=$$(echo "$$p" | jq -c -r '.ruleNames[0] + "/" + .ruleNames[1] + " " + .ruleDescription + " [Detail: \"" + .errorDetail + "\", Context: \"" + .errorContext + "\"]"'); \
 				exit_code=1; \
 				echo "::error file=$${file},line=$${line},endLine=$${endline}::$${message}"; \
-			done <<< "$$(npx markdownlint --dot --json . 2>&1 | jq -c '.[]')"; \
+			done <<< "$$(npx markdownlint --dot --json $${files} 2>&1 | jq -c '.[]')"; \
 			exit "$${exit_code}"; \
 		else \
-			npx markdownlint --dot .; \
+			npx markdownlint --dot $${files}; \
 		fi
 
 .PHONY: yamllint
-yamllint: ## Runs the yamllint linter.
+yamllint: .venv/.installed ## Runs the yamllint linter.
 	@set -euo pipefail;\
 		extraargs=""; \
+		files=$$( \
+			git ls-files \
+				'*.yml' '**/*.yml' \
+				'*.yaml' '**/*.yaml' \
+		); \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 			extraargs="-f github"; \
 		fi; \
-		yamllint --strict -c .yamllint.yaml . $$extraargs
+		.venv/bin/yamllint --strict -c .yamllint.yaml $${extraargs} $${files}
 
 .PHONY: golangci-lint
 golangci-lint: ## Runs the golangci-lint linter.

@@ -1,10 +1,25 @@
-# repo-template
+# repo-template-go
 
 [![tests](https://github.com/ianlewis/repo-template/actions/workflows/pre-submit.units.yml/badge.svg)](https://github.com/ianlewis/repo-template/actions/workflows/pre-submit.units.yml)
 
+Repository template for Go repos under github.com/ianlewis
+
 This repository template is maintained for use in repos under
-`github.com/ianlewis`. However, it can be used as a general purpose repository
-starter template.
+`github.com/ianlewis`. However, it can be used as a general purpose Go
+repository starter template.
+
+## Usage
+
+1. Update `go.mod`
+
+   The `module` directive in `go.mod` must be updated to the correct module
+   name. The `go` directive sohuld be updated to the required Go version.
+
+   ```text
+   module github.com/user/repo
+
+   go 1.23.2
+   ```
 
 ## Makefile
 
@@ -13,21 +28,28 @@ includes a default `help` target that prints all make targets and their
 descriptions grouped by function.
 
 ```shell
-repo-template$ make
-repo-template Makefile
 Usage: make [COMMAND]
 
   help                 Shows all targets and help from the Makefile (this message).
+Testing
+  unit-test            Runs all unit tests.
+  go-test              Runs Go unit tests.
+Benchmarking
+  go-benchmark         Runs Go benchmarks.
 Tools
   license-headers      Update license headers.
   format               Format all files
   md-format            Format Markdown files.
   yaml-format          Format YAML files.
+  go-format            Format Go files (gofumpt).
 Linters
   lint                 Run all linters.
   actionlint           Runs the actionlint linter.
   markdownlint         Runs the markdownlint linter.
   yamllint             Runs the yamllint linter.
+  golangci-lint        Runs the golangci-lint linter.
+Maintenance
+  clean                Delete temporary files.
 ```
 
 ## Formating and linting
@@ -39,17 +61,20 @@ maintained and updated via `dependabot`-like tooling.
 
 Required runtimes:
 
+- [`Go`]: The Go runtime needs to be installed.
 - [`Node.js`]: Node.js is required to run some linters and formatters.
-- [`Python`]: Python is required to run some linters and formatters.
+- [`Python`]: Node.js is required to run some linters and formatters.
 
 The following tools need to be installed:
 
 - [`actionlint`]: For linting GitHub Actions workflows.
+- [`golangci-lint`]: For linting Go code.
 - [`shellcheck`]: For linting shell code in GitHub Actions workflows.
 
 The following tools are installed locally:
 
-- [`yamllint`]: For YAML (e.g. GitHub Actions workflows; installed in Python virtualenv `.venv`).
+- [`yamllint`]: For YAML (e.g. GitHub Actions workflows). (installed in Python
+  virtualenv `.venv`).
 - [`prettier`]: For formatting markdown and yaml (installed in local
   `node_modules`).
 - [`markdownlint`]: For linting markdown (installed in local `node_modules`).
@@ -97,7 +122,7 @@ commit on your commit history.
 
 ```shell
 # One time step: Add the repository template as a remote.
-git remote add repo-template git@github.com:ianlewis/repo-template.git
+git remote add repo-template-go git@github.com:ianlewis/repo-template-go.git
 
 # Fetch the latest version of the repo-template.
 git fetch repo-template main
@@ -106,19 +131,15 @@ git fetch repo-template main
 git merge --no-edit --signoff --squash --allow-unrelated-histories --log repo-template/main
 ```
 
-## Language-specific templates
-
-A number of language specific templates based on this template are also available:
-
-- Go: [ianlewis/repo-template-go](https://github.com/ianlewis/repo-template-go)
-
 ## Contributing
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for contributor documentation.
 
+[`Go`]: https://go.dev/
 [`Node.js`]: https://nodejs.org/
 [`Python`]: https://www.python.org/
 [`actionlint`]: https://github.com/rhysd/actionlint
+[`golangci-lint`]: https://github.com/golangci/golangci-lint
 [`markdownlint`]: https://github.com/DavidAnson/markdownlint
 [`prettier`]: https://prettier.io/
 [`shellcheck`]: https://www.shellcheck.net/

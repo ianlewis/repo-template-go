@@ -1,6 +1,6 @@
 # repo-template-go
 
-[![tests](https://github.com/ianlewis/repo-template/actions/workflows/pre-submit.units.yml/badge.svg)](https://github.com/ianlewis/repo-template/actions/workflows/pre-submit.units.yml)
+[![tests](https://github.com/ianlewis/repo-template-go/actions/workflows/pre-submit.units.yml/badge.svg)](https://github.com/ianlewis/repo-template-go/actions/workflows/pre-submit.units.yml)
 
 Repository template for Go repos under github.com/ianlewis
 
@@ -124,11 +124,11 @@ commit on your commit history.
 # One time step: Add the repository template as a remote.
 git remote add repo-template-go git@github.com:ianlewis/repo-template-go.git
 
-# Fetch the latest version of the repo-template.
-git fetch repo-template main
+# Fetch the latest version of the repo-template-go.
+git fetch repo-template-go main
 
 # Create a new squash merge commit.
-git merge --no-edit --signoff --squash --allow-unrelated-histories --log repo-template/main
+git merge --no-edit --signoff --squash --allow-unrelated-histories --log repo-template-go/main
 ```
 
 ## Contributing

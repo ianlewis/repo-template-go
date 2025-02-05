@@ -113,6 +113,24 @@ overall project supply-chain security.
 External dependencies on GitHub actions are limited to official GitHub-owned
 actions to minimize exposure to compromise of external repositories.
 
+## Keeping repositories in sync
+
+You can optionally keep repositories created with the template in sync with
+changes to the template. Because repositories created from GitHub templates are
+not forks, it is recommended to to a squash merge to squash the merge as a
+commit on your commit history.
+
+```shell
+# One time step: Add the repository template as a remote.
+git remote add repo-template-go git@github.com:ianlewis/repo-template-go.git
+
+# Fetch the latest version of the repo-template.
+git fetch repo-template main
+
+# Create a new squash merge commit.
+git merge --no-edit --signoff --squash --allow-unrelated-histories --log repo-template/main
+```
+
 ## Contributing
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for contributor documentation.

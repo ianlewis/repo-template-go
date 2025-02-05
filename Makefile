@@ -119,7 +119,7 @@ license-headers: ## Update license headers.
 		fi;
 
 .PHONY: format
-format: md-format yaml-format ## Format all files
+format: go-format md-format yaml-format ## Format all files
 
 .PHONY: md-format
 md-format: node_modules/.installed ## Format Markdown files.
@@ -147,7 +147,7 @@ go-format: ## Format Go files (gofumpt).
 	@set -euo pipefail;\
 		files=$$(git ls-files '*.go'); \
 		if [ "$${files}" != "" ]; then \
-			gofumpt $${files}; \
+			gofumpt -w $${files}; \
 			gci write  --skip-generated -s standard -s default -s "prefix(github.com/ianlewis/go-dictzip)" $${files}; \
 		fi
 

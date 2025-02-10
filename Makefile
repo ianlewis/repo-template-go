@@ -102,6 +102,7 @@ license-headers: ## Update license headers.
 				'*.py' '**/*.py' \
 				'*.yaml' '**/*.yaml' \
 				'*.yml' '**/*.yml' \
+				'Makefile' \
 		); \
 		name=$$(git config user.name); \
 		if [ "$${name}" == "" ]; then \
@@ -218,4 +219,7 @@ golangci-lint: ## Runs the golangci-lint linter.
 
 .PHONY: clean
 clean: ## Delete temporary files.
-	rm -rf vendor node_modules coverage.out
+	@rm -rf \
+		.venv \
+		node_modules \
+		coverage.out

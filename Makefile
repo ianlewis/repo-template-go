@@ -58,6 +58,36 @@ node_modules/.installed: package.json package-lock.json
 	./.venv/bin/pip install -r requirements.txt --require-hashes
 	touch .venv/.installed
 
+
+## Testing
+#####################################################################
+
+.PHONY: unit-test
+unit-test: go-test ## Runs all unit tests.
+
+.PHONY: go-test
+go-test: ## Runs Go unit tests.
+	@set -e;\
+		go mod vendor; \
+		extraargs=""; \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			extraargs="-v"; \
+		fi; \
+		go test $$extraargs -mod=vendor -race -coverprofile=coverage.out -covermode=atomic ./...
+
+## Benchmarking
+#####################################################################
+
+.PHONY: go-benchmark
+go-benchmark: ## Runs Go benchmarks.
+	@set -e;\
+		go mod vendor; \
+		extraargs=""; \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			extraargs="-v"; \
+		fi; \
+		go test $$extraargs -bench=. -count=$(TESTCOUNT) -benchtime=$(BENCHTIME) -run='^#' ./...
+
 ## Tools
 #####################################################################
 
@@ -90,7 +120,7 @@ license-headers: ## Update license headers.
 		fi;
 
 .PHONY: format
-format: md-format yaml-format ## Format all files
+format: go-format md-format yaml-format ## Format all files
 
 .PHONY: md-format
 md-format: node_modules/.installed ## Format Markdown files.
@@ -112,11 +142,21 @@ yaml-format: node_modules/.installed ## Format YAML files.
 		); \
 		npx prettier --write --no-error-on-unmatched-pattern $${files}
 
+
+.PHONY: go-format
+go-format: ## Format Go files (gofumpt).
+	@set -euo pipefail;\
+		files=$$(git ls-files '*.go'); \
+		if [ "$${files}" != "" ]; then \
+			gofumpt -w $${files}; \
+			gci write  --skip-generated -s standard -s default -s "prefix(github.com/ianlewis/go-dictzip)" $${files}; \
+		fi
+
 ## Linters
 #####################################################################
 
 .PHONY: lint
-lint: yamllint actionlint markdownlint ## Run all linters.
+lint: golangci-lint yamllint actionlint markdownlint ## Run all linters.
 
 .PHONY: actionlint
 actionlint: ## Runs the actionlint linter.
@@ -170,6 +210,10 @@ yamllint: .venv/.installed ## Runs the yamllint linter.
 		fi; \
 		.venv/bin/yamllint --strict -c .yamllint.yaml $${extraargs} $${files}
 
+.PHONY: golangci-lint
+golangci-lint: ## Runs the golangci-lint linter.
+	@golangci-lint run -c .golangci.yml ./...
+
 ## Maintenance
 #####################################################################
 
@@ -177,4 +221,5 @@ yamllint: .venv/.installed ## Runs the yamllint linter.
 clean: ## Delete temporary files.
 	@rm -rf \
 		.venv \
-		node_modules
+		node_modules \
+		coverage.out

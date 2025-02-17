@@ -128,7 +128,7 @@ git remote add repo-template-go git@github.com:ianlewis/repo-template-go.git
 git fetch repo-template-go main
 
 # Create a new squash merge commit.
-git merge --no-edit --signoff --squash --allow-unrelated-histories --log repo-template-go/main
+git merge --no-edit --signoff --squash --allow-unrelated-histories repo-template-go/main
 ```
 
 ## Contributing

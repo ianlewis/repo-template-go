@@ -45,19 +45,18 @@ help: ## Shows all targets and help from the Makefile (this message).
 		}'
 
 package-lock.json:
-	npm install
+	@npm install
 
 node_modules/.installed: package.json package-lock.json
-	npm ci
-	touch node_modules/.installed
+	@npm ci
+	@touch node_modules/.installed
 
 .venv/bin/activate:
-	python -m venv .venv
+	@python -m venv .venv
 
 .venv/.installed: .venv/bin/activate requirements.txt
-	./.venv/bin/pip install -r requirements.txt --require-hashes
-	touch .venv/.installed
-
+	@./.venv/bin/pip install -r requirements.txt --require-hashes
+	@touch .venv/.installed
 
 ## Testing
 #####################################################################
@@ -102,6 +101,7 @@ license-headers: ## Update license headers.
 				'*.py' '**/*.py' \
 				'*.yaml' '**/*.yaml' \
 				'*.yml' '**/*.yml' \
+				'Makefile' \
 		); \
 		name=$$(git config user.name); \
 		if [ "$${name}" == "" ]; then \
@@ -117,6 +117,9 @@ license-headers: ## Update license headers.
 		if ! ( head Makefile | grep -iL "Copyright" > /dev/null ); then \
 			autogen -i --no-code --no-tlc -c "$${name}" -l apache Makefile; \
 		fi;
+
+## Formatting
+#####################################################################
 
 .PHONY: format
 format: go-format md-format yaml-format ## Format all files
@@ -151,7 +154,7 @@ go-format: ## Format Go files (gofumpt).
 			gci write  --skip-generated -s standard -s default -s "prefix(github.com/ianlewis/go-dictzip)" $${files}; \
 		fi
 
-## Linters
+## Linting
 #####################################################################
 
 .PHONY: lint
@@ -218,4 +221,8 @@ golangci-lint: ## Runs the golangci-lint linter.
 
 .PHONY: clean
 clean: ## Delete temporary files.
-	rm -rf vendor node_modules coverage.out
+	@rm -rf \
+		.venv \
+		node_modules \
+		vendor \
+		coverage.out

@@ -94,7 +94,7 @@ go-benchmark: ## Runs Go benchmarks.
 license-headers: ## Update license headers.
 	@set -euo pipefail; \
 		files=$$( \
-			git ls-files \
+			git ls-files --deduplicate \
 				'*.go' '**/*.go' \
 				'*.ts' '**/*.ts' \
 				'*.js' '**/*.js' \
@@ -128,9 +128,8 @@ format: go-format md-format yaml-format ## Format all files
 md-format: node_modules/.installed ## Format Markdown files.
 	@set -euo pipefail; \
 		files=$$( \
-			git ls-files \
+			git ls-files --deduplicate \
 				'*.md' '**/*.md' \
-				'*.markdown' '**/*.markdown' \
 		); \
 		npx prettier --write --no-error-on-unmatched-pattern $${files}
 
@@ -138,7 +137,7 @@ md-format: node_modules/.installed ## Format Markdown files.
 yaml-format: node_modules/.installed ## Format YAML files.
 	@set -euo pipefail; \
 		files=$$( \
-			git ls-files \
+			git ls-files --deduplicate \
 				'*.yml' '**/*.yml' \
 				'*.yaml' '**/*.yaml' \
 		); \
@@ -158,14 +157,14 @@ go-format: ## Format Go files (gofumpt).
 #####################################################################
 
 .PHONY: lint
-lint: golangci-lint yamllint actionlint markdownlint ## Run all linters.
+lint: yamllint markdownlint actionlint zizmor golangci-lint ## Run all linters.
 
 .PHONY: actionlint
 actionlint: ## Runs the actionlint linter.
 	@# NOTE: We need to ignore config files used in tests.
 	@set -euo pipefail;\
 		files=$$( \
-			git ls-files \
+			git ls-files --deduplicate \
 				'.github/workflows/*.yml' \
 				'.github/workflows/*.yaml' \
 		); \
@@ -175,13 +174,36 @@ actionlint: ## Runs the actionlint linter.
 			actionlint $${files}; \
 		fi
 
+.PHONY: zizmor
+zizmor: .venv/.installed ## Runs the zizmor linter.
+	@# NOTE: On GitHub actions this outputs SARIF format to zizmor.sarif.json
+	@#       rather than outputting errors to the terminal. This is so that
+	@#       security issues can be uploaded privately rather than being made
+	@#       public.
+	@set -euo pipefail;\
+		extraargs=""; \
+		files=$$( \
+			git ls-files --deduplicate \
+				'.github/workflows/*.yml' \
+				'.github/workflows/*.yaml' \
+		); \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			.venv/bin/zizmor --pedantic --format sarif $${files} > zizmor.sarif.json; \
+		else \
+			.venv/bin/zizmor --pedantic --format plain $${files}; \
+		fi
+
 .PHONY: markdownlint
 markdownlint: node_modules/.installed ## Runs the markdownlint linter.
+	@# NOTE: Issue and PR templates are handled specially so we can disable
+	@# MD041/first-line-heading/first-line-h1 without adding an ugly html comment
+	@# at the top of the file.
 	@set -euo pipefail;\
 		files=$$( \
-			git ls-files \
+			git ls-files --deduplicate \
 				'*.md' '**/*.md' \
-				'*.markdown' '**/*.markdown' \
+				':!:.github/pull_request_template.md' \
+				':!:.github/ISSUE_TEMPLATE/*.md' \
 		); \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 			exit_code=0; \
@@ -192,10 +214,33 @@ markdownlint: node_modules/.installed ## Runs the markdownlint linter.
 				message=$$(echo "$$p" | jq -c -r '.ruleNames[0] + "/" + .ruleNames[1] + " " + .ruleDescription + " [Detail: \"" + .errorDetail + "\", Context: \"" + .errorContext + "\"]"'); \
 				exit_code=1; \
 				echo "::error file=$${file},line=$${line},endLine=$${endline}::$${message}"; \
-			done <<< "$$(npx markdownlint --dot --json $${files} 2>&1 | jq -c '.[]')"; \
-			exit "$${exit_code}"; \
+			done <<< "$$(npx markdownlint --config .markdownlint.yaml --dot --json $${files} 2>&1 | jq -c '.[]')"; \
+			if [ "$${exit_code}" != "0" ]; then \
+				exit "$${exit_code}"; \
+			fi; \
 		else \
-			npx markdownlint --dot $${files}; \
+			npx markdownlint --config .markdownlint.yaml --dot $${files}; \
+		fi; \
+		files=$$( \
+			git ls-files --deduplicate \
+				'.github/pull_request_template.md' \
+				'.github/ISSUE_TEMPLATE/*.md' \
+		); \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			exit_code=0; \
+			while IFS="" read -r p && [ -n "$$p" ]; do \
+				file=$$(echo "$$p" | jq -c -r '.fileName // empty'); \
+				line=$$(echo "$$p" | jq -c -r '.lineNumber // empty'); \
+				endline=$${line}; \
+				message=$$(echo "$$p" | jq -c -r '.ruleNames[0] + "/" + .ruleNames[1] + " " + .ruleDescription + " [Detail: \"" + .errorDetail + "\", Context: \"" + .errorContext + "\"]"'); \
+				exit_code=1; \
+				echo "::error file=$${file},line=$${line},endLine=$${endline}::$${message}"; \
+			done <<< "$$(npx markdownlint --config .github/template.markdownlint.yaml --dot --json $${files} 2>&1 | jq -c '.[]')"; \
+			if [ "$${exit_code}" != "0" ]; then \
+				exit "$${exit_code}"; \
+			fi; \
+		else \
+			npx markdownlint  --config .github/template.markdownlint.yaml --dot $${files}; \
 		fi
 
 .PHONY: yamllint
@@ -203,7 +248,7 @@ yamllint: .venv/.installed ## Runs the yamllint linter.
 	@set -euo pipefail;\
 		extraargs=""; \
 		files=$$( \
-			git ls-files \
+			git ls-files --deduplicate \
 				'*.yml' '**/*.yml' \
 				'*.yaml' '**/*.yaml' \
 		); \
@@ -224,5 +269,6 @@ clean: ## Delete temporary files.
 	@rm -rf \
 		.venv \
 		node_modules \
+		*.sarif.json \
 		vendor \
 		coverage.out

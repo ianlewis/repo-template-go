@@ -28,6 +28,8 @@ includes a default `help` target that prints all make targets and their
 descriptions grouped by function.
 
 ```shell
+$ make
+repo-template-go Makefile
 Usage: make [COMMAND]
 
   help                 Shows all targets and help from the Makefile (this message).
@@ -38,18 +40,20 @@ Benchmarking
   go-benchmark         Runs Go benchmarks.
 Tools
   license-headers      Update license headers.
+Formatting
   format               Format all files
   md-format            Format Markdown files.
   yaml-format          Format YAML files.
   go-format            Format Go files (gofumpt).
-Linters
+Linting
   lint                 Run all linters.
   actionlint           Runs the actionlint linter.
+  zizmor               Runs the zizmor linter.
   markdownlint         Runs the markdownlint linter.
   yamllint             Runs the yamllint linter.
   golangci-lint        Runs the golangci-lint linter.
 Maintenance
-  clean                Delete temporary files.
+  clean                Delete temporary files
 ```
 
 ## Formating and linting

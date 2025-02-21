@@ -26,6 +26,50 @@ permissions:
   contents: read # Needed to check out the repo.
 
 jobs:
+  # Unit tests for Go code
+  ######################################
+
+  unit-tests-matrix:
+    name: unit tests
+    strategy:
+      matrix:
+        go-version:
+          # TODO: Add other Go versions here.
+          - "1.23"
+        os:
+          - ubuntu-latest
+          # TODO: Enable tests for relevant OSes.
+          # - macos-latest
+          # - windows-latest
+    runs-on: ${{ matrix.os }}
+    if: ${{ always() }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: unit tests
+        run: make go-test
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@5c47607acb93fed5485fdbf7232e8a31425f672a # v5.0.2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.out
+          fail_ci_if_error: true
+
+  # NOTE: needed for protected branch checks.
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: [unit-tests-matrix]
+    if: ${{ always() }}
+    env:
+      UNIT_TESTS_RESULT: ${{ needs.unit-tests-matrix.result }}
+    steps:
+      - run: |
+          [ "${UNIT_TESTS_RESULT}" == "success" ]
+
   # Check license headers
   ###############################
   license-headers:
@@ -66,8 +110,12 @@ jobs:
       - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version-file: "package.json"
-      - run: |
-          make format
+      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version-file: "go.mod"
+      - run: go install mvdan.cc/gofumpt@v0.7.0
+      - run: go install github.com/daixiang0/gci@v0.13.5
+      - run: make format
       - name: check diff
         run: |
           set -euo pipefail
@@ -151,3 +199,29 @@ jobs:
         with:
           persist-credentials: false
       - run: make yamllint
+
+  golangci-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version-file: "go.mod"
+      - env:
+          GOLANGCI_LINT_VERSION: "1.61.0"
+          GOLANGCI_LINT_CHECKSUM: "77cb0af99379d9a21d5dc8c38364d060e864a01bd2f3e30b5e8cc550c3a54111"
+        run: |
+          set -euo pipefail
+
+          #Install golangci-lint
+          curl -sSLo golangci-lint.tar.gz "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-amd64.tar.gz"
+          echo "golangci-lint checksum is $(sha256sum golangci-lint.tar.gz | awk '{ print $1 }')"
+          echo "expected checksum is $GOLANGCI_LINT_CHECKSUM"
+          echo "$GOLANGCI_LINT_CHECKSUM  golangci-lint.tar.gz" | sha256sum --strict --check --status || exit 1
+          tar xf golangci-lint.tar.gz
+          mv "golangci-lint-${GOLANGCI_LINT_VERSION}-linux-amd64/golangci-lint" /usr/local/bin
+
+          # Run golangci-lint
+          make golangci-lint

@@ -51,9 +51,9 @@ Linting
   zizmor               Runs the zizmor linter.
   markdownlint         Runs the markdownlint linter.
   yamllint             Runs the yamllint linter.
+  golangci-lint        Runs the golangci-lint linter.
 Maintenance
   clean                Delete temporary files.
-  golangci-lint        Runs the golangci-lint linter.
 ```
 
 ## Formating and linting

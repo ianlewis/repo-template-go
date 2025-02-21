@@ -149,7 +149,7 @@ go-format: ## Format Go files (gofumpt).
 		files=$$(git ls-files '*.go'); \
 		if [ "$${files}" != "" ]; then \
 			gofumpt -w $${files}; \
-			gci write  --skip-generated -s standard -s default -s "prefix(github.com/ianlewis/go-dictzip)" $${files}; \
+			gci write  --skip-generated -s standard -s default -s "prefix($$(go list -m))" $${files}; \
 		fi
 
 ## Linting

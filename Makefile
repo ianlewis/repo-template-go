@@ -16,6 +16,9 @@ SHELL := /bin/bash
 OUTPUT_FORMAT ?= $(shell if [ "${GITHUB_ACTIONS}" == "true" ]; then echo "github"; else echo ""; fi)
 REPO_NAME = $(shell basename "$$(pwd)")
 
+BENCHTIME ?= 1s
+TESTCOUNT ?= 1
+
 # The help command prints targets in groups. Help documentation in the Makefile
 # uses comments with double hash marks (##). Documentation is printed by the
 # help target in the order in appears in the Makefile.
@@ -85,7 +88,7 @@ go-benchmark: ## Runs Go benchmarks.
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 			extraargs="-v"; \
 		fi; \
-		go test $$extraargs -bench=. -count=$(TESTCOUNT) -benchtime=$(BENCHTIME) -run='^#' ./...
+		go test $$extraargs -mod=vendor -bench=. -count=$(TESTCOUNT) -benchtime=$(BENCHTIME) -run='^#' ./...
 
 ## Tools
 #####################################################################

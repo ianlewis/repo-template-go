@@ -143,7 +143,6 @@ yaml-format: node_modules/.installed ## Format YAML files.
 		); \
 		npx prettier --write --no-error-on-unmatched-pattern $${files}
 
-
 .PHONY: go-format
 go-format: ## Format Go files (gofumpt).
 	@set -euo pipefail;\

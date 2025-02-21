@@ -53,7 +53,7 @@ Linting
   yamllint             Runs the yamllint linter.
   golangci-lint        Runs the golangci-lint linter.
 Maintenance
-  clean                Delete temporary files
+  clean                Delete temporary files.
 ```
 
 ## Formating and linting

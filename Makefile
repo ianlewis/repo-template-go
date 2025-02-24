@@ -190,9 +190,9 @@ zizmor: .venv/.installed ## Runs the zizmor linter.
 				'.github/workflows/*.yaml' \
 		); \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
-			.venv/bin/zizmor --pedantic --format sarif $${files} > zizmor.sarif.json; \
+			.venv/bin/zizmor --quiet --pedantic --format sarif $${files} > zizmor.sarif.json; \
 		else \
-			.venv/bin/zizmor --pedantic --format plain $${files}; \
+			.venv/bin/zizmor --quiet --pedantic --format plain $${files}; \
 		fi
 
 .PHONY: markdownlint

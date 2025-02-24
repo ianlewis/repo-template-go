@@ -121,7 +121,7 @@ actions to minimize exposure to compromise of external repositories.
 
 You can optionally keep repositories created with the template in sync with
 changes to the template. Because repositories created from GitHub templates are
-not forks, it is recommended to to a squash merge to squash the merge as a
+not forks, it is recommended to perform a squash merge to squash the merge as a
 commit on your commit history.
 
 ```shell

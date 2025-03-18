@@ -36,7 +36,7 @@ updates:
     groups:
       # Group all dependencies with minor or patch version updates into one PR.
       # Security updates and major updates are on separate PRs
-      all-dependencies:
+      all-actions-dependencies:
         applies-to: "version-updates"
         patterns:
           - "*"
@@ -53,7 +53,7 @@ updates:
       # PR with production and development dependencies grouped into separate
       # PRs.
       # All security updates and major updates are on separate PRs
-      production-dependencies:
+      production-npm-dependencies:
         dependency-type: "production"
         applies-to: "version-updates"
         patterns:
@@ -61,7 +61,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-      development-dependencies:
+      development-npm-dependencies:
         dependency-type: "development"
         applies-to: "version-updates"
         patterns:
@@ -77,7 +77,7 @@ updates:
     groups:
       # Group all dependencies with minor or patch version updates into one PR.
       # Security updates and major updates are on separate PRs
-      all-dependencies:
+      all-pip-dependencies:
         applies-to: "version-updates"
         patterns:
           - "*"

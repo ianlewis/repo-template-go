@@ -179,9 +179,7 @@ actionlint: ## Runs the actionlint linter.
 .PHONY: zizmor
 zizmor: .venv/.installed ## Runs the zizmor linter.
 	@# NOTE: On GitHub actions this outputs SARIF format to zizmor.sarif.json
-	@#       rather than outputting errors to the terminal. This is so that
-	@#       security issues can be uploaded privately rather than being made
-	@#       public.
+	@#       in addition to outputting errors to the terminal.
 	@set -euo pipefail;\
 		extraargs=""; \
 		files=$$( \
@@ -190,10 +188,9 @@ zizmor: .venv/.installed ## Runs the zizmor linter.
 				'.github/workflows/*.yaml' \
 		); \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
-			.venv/bin/zizmor --quiet --pedantic --format sarif $${files} > zizmor.sarif.json; \
-		else \
-			.venv/bin/zizmor --quiet --pedantic --format plain $${files}; \
-		fi
+			.venv/bin/zizmor --quiet --pedantic --format sarif $${files} > zizmor.sarif.json || true; \
+		fi; \
+		.venv/bin/zizmor --quiet --pedantic --format plain $${files}
 
 .PHONY: markdownlint
 markdownlint: node_modules/.installed ## Runs the markdownlint linter.

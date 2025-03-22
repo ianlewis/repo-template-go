@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// command repo-template-go is a simple Hello World program.
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 func main() {
-	fmt.Println("Hello World!")
+	fmt.Fprintln(os.Stdout, "Hello World!")
 }

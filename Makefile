@@ -151,8 +151,8 @@ go-format: ## Format Go files (gofumpt).
 	@set -euo pipefail;\
 		files=$$(git ls-files '*.go'); \
 		if [ "$${files}" != "" ]; then \
-			gofumpt -w $${files}; \
-			gci write  --skip-generated -s standard -s default -s "prefix($$(go list -m))" $${files}; \
+			go tool mvdan.cc/gofumpt -w $${files}; \
+			go tool github.com/daixiang0/gci write  --skip-generated -s standard -s default -s "prefix($$(go list -m))" $${files}; \
 		fi
 
 ## Linting

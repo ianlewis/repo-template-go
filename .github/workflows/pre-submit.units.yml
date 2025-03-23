@@ -35,7 +35,8 @@ jobs:
       matrix:
         go-version:
           # TODO: Add other Go versions here.
-          - "1.23"
+          # NOTE: Go 1.24 is required for tool dependencies.
+          - "1.24"
         os:
           - ubuntu-latest
           # TODO: Enable tests for relevant OSes.

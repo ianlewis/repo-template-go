@@ -82,6 +82,8 @@ The following tools are installed locally:
 - [`prettier`]: For formatting markdown and yaml (installed in local
   `node_modules`).
 - [`markdownlint`]: For linting markdown (installed in local `node_modules`).
+- [`gofumpt`]: For formatting Go code (installed as Go tool dependency).
+- [`gci`]: For formatting Go imports (installed as Go tool dependency).
 
 `Makefile` targets and linter/formatter config are designed to respect
 `.gitignore` and not cross `git` submodules boundaries. However, you will need
@@ -143,6 +145,8 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for contributor documentation.
 [`Node.js`]: https://nodejs.org/
 [`Python`]: https://www.python.org/
 [`actionlint`]: https://github.com/rhysd/actionlint
+[`gci`]: https://github.com/daixiang0/gci
+[`gofumpt`]: https://github.com/mvdan/gofumpt
 [`golangci-lint`]: https://github.com/golangci/golangci-lint
 [`markdownlint`]: https://github.com/DavidAnson/markdownlint
 [`prettier`]: https://prettier.io/

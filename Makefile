@@ -16,6 +16,9 @@ SHELL := /bin/bash
 OUTPUT_FORMAT ?= $(shell if [ "${GITHUB_ACTIONS}" == "true" ]; then echo "github"; else echo ""; fi)
 REPO_NAME = $(shell basename "$$(pwd)")
 
+BENCHTIME ?= 1s
+TESTCOUNT ?= 1
+
 # The help command prints targets in groups. Help documentation in the Makefile
 # uses comments with double hash marks (##). Documentation is printed by the
 # help target in the order in appears in the Makefile.
@@ -58,6 +61,35 @@ node_modules/.installed: package.json package-lock.json
 	@./.venv/bin/pip install -r requirements.txt --require-hashes
 	@touch .venv/.installed
 
+## Testing
+#####################################################################
+
+.PHONY: unit-test
+unit-test: go-test ## Runs all unit tests.
+
+.PHONY: go-test
+go-test: ## Runs Go unit tests.
+	@set -e;\
+		go mod vendor; \
+		extraargs=""; \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			extraargs="-v"; \
+		fi; \
+		go test $$extraargs -mod=vendor -race -coverprofile=coverage.out -covermode=atomic ./...
+
+## Benchmarking
+#####################################################################
+
+.PHONY: go-benchmark
+go-benchmark: ## Runs Go benchmarks.
+	@set -e;\
+		go mod vendor; \
+		extraargs=""; \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			extraargs="-v"; \
+		fi; \
+		go test $$extraargs -mod=vendor -bench=. -count=$(TESTCOUNT) -benchtime=$(BENCHTIME) -run='^#' ./...
+
 ## Tools
 #####################################################################
 
@@ -93,7 +125,7 @@ license-headers: ## Update license headers.
 #####################################################################
 
 .PHONY: format
-format: md-format yaml-format ## Format all files
+format: go-format md-format yaml-format ## Format all files
 
 .PHONY: md-format
 md-format: node_modules/.installed ## Format Markdown files.
@@ -114,11 +146,20 @@ yaml-format: node_modules/.installed ## Format YAML files.
 		); \
 		npx prettier --write --no-error-on-unmatched-pattern $${files}
 
+.PHONY: go-format
+go-format: ## Format Go files (gofumpt).
+	@set -euo pipefail;\
+		files=$$(git ls-files '*.go'); \
+		if [ "$${files}" != "" ]; then \
+			go tool mvdan.cc/gofumpt -w $${files}; \
+			go tool github.com/daixiang0/gci write  --skip-generated -s standard -s default -s "prefix($$(go list -m))" $${files}; \
+		fi
+
 ## Linting
 #####################################################################
 
 .PHONY: lint
-lint: actionlint markdownlint textlint yamllint zizmor ## Run all linters.
+lint: actionlint markdownlint textlint yamllint zizmor golangci-lint ## Run all linters.
 
 .PHONY: actionlint
 actionlint: ## Runs the actionlint linter.
@@ -239,6 +280,10 @@ yamllint: .venv/.installed ## Runs the yamllint linter.
 		fi; \
 		.venv/bin/yamllint --strict -c .yamllint.yaml $${extraargs} $${files}
 
+.PHONY: golangci-lint
+golangci-lint: ## Runs the golangci-lint linter.
+	@golangci-lint run -c .golangci.yml ./...
+
 ## Maintenance
 #####################################################################
 
@@ -247,4 +292,6 @@ clean: ## Delete temporary files.
 	@rm -rf \
 		.venv \
 		node_modules \
-		*.sarif.json
+		*.sarif.json \
+		vendor \
+		coverage.out

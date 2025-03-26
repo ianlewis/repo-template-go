@@ -98,12 +98,12 @@ license-headers: ## Update license headers.
 	@set -euo pipefail; \
 		files=$$( \
 			git ls-files --deduplicate \
-				'*.go' '**/*.go' \
-				'*.ts' '**/*.ts' \
-				'*.js' '**/*.js' \
-				'*.py' '**/*.py' \
-				'*.yaml' '**/*.yaml' \
-				'*.yml' '**/*.yml' \
+				'*.go' \
+				'*.ts' \
+				'*.js' \
+				'*.py' \
+				'*.yaml' \
+				'*.yml' \
 				'Makefile' \
 		); \
 		name=$$(git config user.name); \
@@ -132,7 +132,7 @@ md-format: node_modules/.installed ## Format Markdown files.
 	@set -euo pipefail; \
 		files=$$( \
 			git ls-files --deduplicate \
-				'*.md' '**/*.md' \
+				'*.md' \
 		); \
 		npx prettier --write --no-error-on-unmatched-pattern $${files}
 
@@ -141,8 +141,8 @@ yaml-format: node_modules/.installed ## Format YAML files.
 	@set -euo pipefail; \
 		files=$$( \
 			git ls-files --deduplicate \
-				'*.yml' '**/*.yml' \
-				'*.yaml' '**/*.yaml' \
+				'*.yml' \
+				'*.yaml' \
 		); \
 		npx prettier --write --no-error-on-unmatched-pattern $${files}
 
@@ -159,7 +159,7 @@ go-format: ## Format Go files (gofumpt).
 #####################################################################
 
 .PHONY: lint
-lint: yamllint markdownlint actionlint zizmor golangci-lint ## Run all linters.
+lint: actionlint markdownlint textlint yamllint zizmor golangci-lint ## Run all linters.
 
 .PHONY: actionlint
 actionlint: ## Runs the actionlint linter.
@@ -181,7 +181,6 @@ zizmor: .venv/.installed ## Runs the zizmor linter.
 	@# NOTE: On GitHub actions this outputs SARIF format to zizmor.sarif.json
 	@#       in addition to outputting errors to the terminal.
 	@set -euo pipefail;\
-		extraargs=""; \
 		files=$$( \
 			git ls-files --deduplicate \
 				'.github/workflows/*.yml' \
@@ -200,7 +199,7 @@ markdownlint: node_modules/.installed ## Runs the markdownlint linter.
 	@set -euo pipefail;\
 		files=$$( \
 			git ls-files --deduplicate \
-				'*.md' '**/*.md' \
+				'*.md' \
 				':!:.github/pull_request_template.md' \
 				':!:.github/ISSUE_TEMPLATE/*.md' \
 		); \
@@ -242,14 +241,39 @@ markdownlint: node_modules/.installed ## Runs the markdownlint linter.
 			npx markdownlint  --config .github/template.markdownlint.yaml --dot $${files}; \
 		fi
 
+.PHONY: textlint
+textlint: node_modules/.installed ## Runs the textlint linter.
+	@set -e;\
+		files=$$( \
+			git ls-files --deduplicate \
+				'*.md' \
+				'*.txt' \
+		); \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			exit_code=0; \
+			while IFS="" read -r p && [ -n "$$p" ]; do \
+				filePath=$$(echo "$$p" | jq -c -r '.filePath // empty'); \
+				file=$$(realpath --relative-to="." "$${filePath}"); \
+				while IFS="" read -r m && [ -n "$$m" ]; do \
+					line=$$(echo "$$m" | jq -c -r '.loc.start.line'); \
+					endline=$$(echo "$$m" | jq -c -r '.loc.end.line'); \
+					message=$$(echo "$$m" | jq -c -r '.message'); \
+					echo "::error file=$${file},line=$${line},endLine=$${endline}::$${message}"; \
+				done <<<"$$(echo "$$p" | jq -c -r '.messages[] // empty')"; \
+			done <<< "$$(./node_modules/.bin/textlint -c .textlintrc.json --format json $${files} 2>&1 | jq -c '.[]')"; \
+			exit "$${exit_code}"; \
+		else \
+			./node_modules/.bin/textlint -c .textlintrc.json $${files}; \
+		fi
+
 .PHONY: yamllint
 yamllint: .venv/.installed ## Runs the yamllint linter.
 	@set -euo pipefail;\
 		extraargs=""; \
 		files=$$( \
 			git ls-files --deduplicate \
-				'*.yml' '**/*.yml' \
-				'*.yaml' '**/*.yaml' \
+				'*.yml' \
+				'*.yaml' \
 		); \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 			extraargs="-f github"; \

@@ -1,34 +1,35 @@
-# repo-template-go
+# `repo-template-go`
 
-[![tests](https://github.com/ianlewis/repo-template-go/actions/workflows/pre-submit.units.yml/badge.svg)](https://github.com/ianlewis/repo-template-go/actions/workflows/pre-submit.units.yml) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ianlewis/repo-template-go/badge)](https://api.securityscorecards.dev/projects/github.com/ianlewis/repo-template-go)
+[![tests](https://github.com/ianlewis/repo-template-go/actions/workflows/pre-submit.units.yml/badge.svg)](https://github.com/ianlewis/repo-template-go/actions/workflows/pre-submit.units.yml) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ianlewis/repo-template-go/badge)](https://securityscorecards.dev/viewer/?uri=github.com%2Fianlewis%2Frepo-template-go)
 
-Repository template for Go repos under github.com/ianlewis
+Repository template for Go repositories under `github.com/ianlewis`.
 
-This repository template is maintained for use in repos under
+This repository template is maintained for use in repositories under
 `github.com/ianlewis`. However, it can be used as a general purpose Go
 repository starter template.
-
-## Usage
-
-1. Update `go.mod`
-
-   The `module` directive in `go.mod` must be updated to the correct module
-   name. The `go` directive sohuld be updated to the required Go version.
-
-   ```text
-   module github.com/user/repo
-
-   go 1.23.2
-   ```
 
 ## Goals
 
 ### Repository quality
 
-[Formatters and linters](#formatting-and-linting) are maintained to maintain repository code and
-configuration quality through PR checks.
+A set of [formatters and linters](#formatting-and-linting) are maintained to
+maintain repository code and configuration quality through PR checks.
 
-### Security & Dependencies
+### Consistency
+
+We want the template to work as consistently as possible by minimizing issues
+due to conflicting installed package versions. Running commands and tools
+locally should have the same result between different local development
+machines and CI. Recommended language runtime versions are set via their
+respective ecosystem tooling.
+
+This template strives to minimize outside dependencies on tools and
+configuration requiring only a [minimal set](#requirements) of Unix userspace
+tools and language runtimes to work. Dependencies are downloaded and stored
+locally inside the project directory so they don't conflict with globally
+installed package versions.
+
+### Security
 
 In general, dependencies for tools and GitHub Actions are pinned to improved
 overall project supply-chain security.
@@ -37,7 +38,14 @@ External dependencies on GitHub actions are limited to trusted actions with
 good security practices (e.g. official GitHub-owned actions) to minimize
 exposure to compromise via external repositories.
 
-See also [Recommended repository settings](#recommended-repository-settings).
+Versioning of formatting, linting, and other tool dependencies is done via the
+`requirements.txt` and `packages.json` where possible. This is so that the
+versions can be maintained and updated via dependency automation tooling. This
+repository uses [Mend Renovate](https://www.mend.io/renovate/) because it
+allows more flexibility in configuration than Dependabot.
+
+See also [Recommended repository settings](#recommended-repository-settings)
+for more recommended security settings.
 
 ## Requirements
 
@@ -51,63 +59,86 @@ Required runtimes:
 
 - [`Go`]: The Go runtime needs to be installed.
 - [`Node.js`]: Node.js is required to run some linters and formatters.
-- [`Python`]: Node.js is required to run some linters and formatters.
+- [`Python`]: Python is required to run some linters and formatters.
 
 The following tools need to be installed:
 
-- [`actionlint`]: For linting GitHub Actions workflows.
-- [`mbrukman/autogen`]: For adding license headers.
-- [`golangci-lint`]: For linting Go code.
-- [`shellcheck`]: For linting shell code in GitHub Actions workflows.
-- [`jq`]: For parsing output of some linters.
 - [`git`]: For repository management.
-- `awk`, `bash`, `grep`, `head`, `rm`: Standard Unix tools.
+- `awk`, `bash`, `grep`, `head`, `rm`, `sha256sum`: Standard Unix tools.
 
 The following tools are automatically installed locally to the project and
 don't need to be pre-installed:
 
-- [`yamllint`]: For linting YAML files (installed in local Python virtualenv `.venv`).
-- [`prettier`]: For formatting markdown and yaml (installed in local `node_modules`).
+- [`actionlint`]: For linting GitHub Actions workflows (installed by Aqua in
+  `.aqua`).
+- [`jq`]: For parsing output of some linters (installed by Aqua in `.aqua`).
 - [`markdownlint`]: For linting markdown (installed in local `node_modules`).
+- [`mbrukman/autogen`]: For adding license headers (vendored in `third_party`).
+- [`prettier`]: For formatting markdown and YAML files (installed in local
+  `node_modules`).
+- [`shellcheck`]: For linting shell code in GitHub Actions workflows (installed
+  by Aqua in `.aqua`).
 - [`textlint`]: For spelling checks (installed in local `node_modules`).
-- [`zizmor`]: For linting GitHub Actions workflows (installed in local Python virtualenv `.venv`).
+- [`yamllint`]: For linting YAML files (installed in local Python virtualenv
+  `.venv`).
+- [`zizmor`]: For linting GitHub Actions workflows (installed in local Python
+  virtualenv `.venv`).
+- [`golangci-lint`]: For linting Go code (installed by Aqua in `.aqua`).
 - [`gofumpt`]: For formatting Go code (installed as Go tool dependency).
 - [`gci`]: For formatting Go imports (installed as Go tool dependency).
 
-## Makefile
+## Usage
 
-The `Makefile` is used for managing files and maintaining code quality. It
-includes a default `help` target that prints all make targets and their
-descriptions grouped by function.
+The repository is organized to be as self-contained as possible. Commands are
+implemented in the project [Makefile](#makefile).
+
+1. Update `go.mod`
+
+    The `module` directive in `go.mod` must be updated to the correct module
+    name. The `go` directive should be updated to the required Go version.
+
+    ```text
+    module github.com/user/repo
+
+    go 1.23.2
+    ```
+
+### Makefile
+
+The `Makefile` is used for running commands, managing files, and maintaining
+code quality. It includes a default `help` target that prints all make targets
+and their descriptions grouped by function.
 
 ```shell
 $ make
 repo-template-go Makefile
 Usage: make [COMMAND]
 
-  help                 Shows all targets and help from the Makefile (this message).
+  help                      Print all Makefile targets (this message).
 Testing
-  unit-test            Runs all unit tests.
-  go-test              Runs Go unit tests.
+  unit-test                 Runs all unit tests.
+  go-test                   Runs Go unit tests.
 Benchmarking
-  go-benchmark         Runs Go benchmarks.
+  go-benchmark              Runs Go benchmarks.
 Tools
-  license-headers      Update license headers.
+  license-headers           Update license headers.
 Formatting
-  format               Format all files
-  md-format            Format Markdown files.
-  yaml-format          Format YAML files.
-  go-format            Format Go files (gofumpt).
+  format                    Format all files
+  json-format               Format JSON files.
+  md-format                 Format Markdown files.
+  yaml-format               Format YAML files.
+  go-format                 Format Go files (gofumpt).
 Linting
-  lint                 Run all linters.
-  actionlint           Runs the actionlint linter.
-  zizmor               Runs the zizmor linter.
-  markdownlint         Runs the markdownlint linter.
-  textlint             Runs the textlint linter.
-  yamllint             Runs the yamllint linter.
-  golangci-lint        Runs the golangci-lint linter.
+  lint                      Run all linters.
+  actionlint                Runs the actionlint linter.
+  zizmor                    Runs the zizmor linter.
+  markdownlint              Runs the markdownlint linter.
+  renovate-config-validator Validate Renovate configuration.
+  textlint                  Runs the textlint linter.
+  yamllint                  Runs the yamllint linter.
+  golangci-lint             Runs the golangci-lint linter.
 Maintenance
-  clean                Delete temporary files.
+  clean                     Delete temporary files.
 ```
 
 ### Formatting and linting
@@ -118,12 +149,11 @@ targets and those targets execute with the same settings as they do when run
 locally. This is to give a consistent experience when attempting to reproduce
 pre-submit errors.
 
-Versioning of formatting and linting tools is done via the `requirements.txt`
-and `packages.json` where possible. This is so that the versions can be
-maintained and updated via `dependabot`-like tooling.
+Versioning of formatting, linting, and other tools are managed as tool
+dependencies so they can be more easily maintained.
 
-`Makefile` targets and linter/formatter config are designed to respect
-`.gitignore` and not cross `git` submodules boundaries. However, you will need
+`Makefile` targets and linter/formatter configuration are designed to respect
+`.gitignore` and not cross `git submodule` boundaries. However, you will need
 to add files using `git add` for new files before they are picked up.
 
 `Makefile` targets for linters will also produce human-readable output by
@@ -144,18 +174,19 @@ Files are checked for the existence license headers in pre-submits.
 
 This repository template includes stub documentation. Examples of
 `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `SECURITY.md` can be found in the
-[ianlewis/ianlewis](https://github.com/ianlewis/ianlewis) repository and are
+[`ianlewis/ianlewis`](https://github.com/ianlewis/ianlewis) repository and are
 maintained in line with [GitHub recommended community
 standards](https://opensource.guide/).
 
 ## Recommended repository settings
 
-The following repository settings are recommended in conjunction with this repository template.
+The following repository settings are recommended in conjunction with this
+repository template.
 
 ### Rules
 
-A ruleset should be created for the default branch with branch protection rules
-that follow the [recommendations from OpenSSF
+A `ruleset` should be created for the default branch with branch protection
+rules that follow the [recommendations from OpenSSF
 Scorecard](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection)
 as closely as possible.
 
@@ -168,6 +199,7 @@ The following checks should be marked as required:
 - [ ] `golangci-lint`
 - [ ] `licence-headers`
 - [ ] `markdownlint`
+- [ ] `renovate-config-validator`
 - [ ] `textlint`
 - [ ] `todos`
 - [ ] `yamllint`
@@ -176,30 +208,23 @@ The following checks should be marked as required:
 
 The following tools should be added to the required code scanning results.
 
-- [ ] CodeQL
-- [ ] zizmor
+- [ ] `CodeQL`
+- [ ] `zizmor`
 
 ### Code security
 
 1. [ ] **Private vulnerability reporting:**
        Enable private vulnerability reporting as mentioned in [`SECURITY.md`].
 
-#### Dependabot
-
-1. [ ] **Dependabot alerts:**
-       Allow dependabot to update linting and formatting tools.
-2. [ ] **Dependabot security updates:**
-       Allow dependabot to update linting and formatting tools.
-
 #### Code scanning
 
 1. [ ] **CodeQL analysis:**
        Make sure "GitHub Actions (Public Preview)" is enabled in languages.
 2. [ ] **Protection rules:**
-   - [ ] **Security alert severity level:** Errors and warnings
-   - [ ] **Standard alert severity level:** Errors and warnings
+    - [ ] **Security alert severity level:** Errors and warnings
+    - [ ] **Standard alert severity level:** Errors and warnings
 3. [ ] **Secret protection:**
-       Get alerts when secrets are detected in the repo.
+       Get alerts when secrets are detected in the repository.
 4. [ ] **Push protection:**
        Block pushing commits with secrets in them.
 

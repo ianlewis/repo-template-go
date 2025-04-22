@@ -4,7 +4,9 @@
 # Dependency directories (remove the comment below to include it)
 vendor/
 node_modules/
+.bin/
 .venv/
+.aqua/
 
 # SARIF files
 *.sarif.json

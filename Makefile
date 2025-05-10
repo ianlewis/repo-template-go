@@ -73,7 +73,6 @@ help: ## Print all Makefile targets (this message).
 					} \
 				}'
 
-
 package-lock.json: package.json
 	@npm install
 	@npm audit signatures
@@ -341,6 +340,7 @@ textlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the textli
 					line=$$(echo "$$m" | jq -c -r '.loc.start.line'); \
 					endline=$$(echo "$$m" | jq -c -r '.loc.end.line'); \
 					message=$$(echo "$$m" | jq -c -r '.message'); \
+					exit_code=1; \
 					echo "::error file=$${file},line=$${line},endLine=$${endline}::$${message}"; \
 				done <<<"$$(echo "$$p" | jq -c -r '.messages[] // empty')"; \
 			done <<< "$$(./node_modules/.bin/textlint -c .textlintrc.yaml --format json $${files} 2>&1 | jq -c '.[]')"; \

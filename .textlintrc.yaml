@@ -37,6 +37,7 @@ rules:
       - "Makefile"
       - "Node.js"
       - "OpenSSF"
+      - "TODO"
       - "e2e"
       - "/[Ff]ormatter/"
       - "/[Ll]inter/"

@@ -165,6 +165,15 @@ license-headers: ## Update license headers.
 		fi; \
 		for filename in $${files}; do \
 			if ! ( head "$${filename}" | grep -iL "Copyright" > /dev/null ); then \
+				./third_party/mbrukman/autogen/autogen.sh \
+					--in-place \
+					--no-code \
+					--no-tlc \
+					--copyright "$${name}" \
+					--license apache \
+					"$${filename}"; \
+			fi; \
+		done
 
 ## Formatting
 #####################################################################

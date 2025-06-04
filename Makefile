@@ -25,11 +25,13 @@ OUTPUT_FORMAT ?= $(shell if [ "${GITHUB_ACTIONS}" == "true" ]; then echo "github
 REPO_ROOT = $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 REPO_NAME = $(shell basename "$(REPO_ROOT)")
 
-AQUA_VERSION ?= 2.46.0
+# renovate: datasource=github-releases depName=aquaproj/aqua versioning=loose
+AQUA_VERSION ?= v2.51.2
 AQUA_REPO ?= github.com/aquaproj/aqua
-AQUA_CHECKSUM.Linux.x86_64 = 6908509aa0c985ea60ed4bfdc69a69f43059a6b539fb16111387e1a7a8d87a9f
+AQUA_CHECKSUM.Linux.x86_64 = 17db2da427bde293b1942e3220675ef796a67f1207daf89e6e80fea8d2bb8c22
+AQUA_CHECKSUM.Linux.aarch64 = b3f0d573e762ce9d104c671b8224506c4c4a32eedd1e6d7ae1e1e39983cdb6a8
 AQUA_CHECKSUM ?= $(AQUA_CHECKSUM.$(uname_s).$(uname_m))
-AQUA_URL = https://$(AQUA_REPO)/releases/download/v$(AQUA_VERSION)/aqua_$(kernel)_$(arch).tar.gz
+AQUA_URL = https://$(AQUA_REPO)/releases/download/$(AQUA_VERSION)/aqua_$(kernel)_$(arch).tar.gz
 AQUA_ROOT_DIR = $(REPO_ROOT)/.aqua
 
 BENCHTIME ?= 1s
@@ -92,7 +94,7 @@ node_modules/.installed: package-lock.json
 .bin/aqua-$(AQUA_VERSION)/aqua:
 	@set -euo pipefail; \
 		mkdir -p .bin/aqua-$(AQUA_VERSION); \
-		tempfile=$$(mktemp --suffix=".aqua-v$(AQUA_VERSION).tar.gz"); \
+		tempfile=$$(mktemp --suffix=".aqua-$(AQUA_VERSION).tar.gz"); \
 		curl -sSLo "$${tempfile}" "$(AQUA_URL)"; \
 		echo "$(AQUA_CHECKSUM)  $${tempfile}" | sha256sum -c; \
 		tar -x -C .bin/aqua-$(AQUA_VERSION) -f "$${tempfile}"
@@ -163,12 +165,15 @@ license-headers: ## Update license headers.
 		fi; \
 		for filename in $${files}; do \
 			if ! ( head "$${filename}" | grep -iL "Copyright" > /dev/null ); then \
-				./third_party/mbrukman/autogen/autogen.sh -i --no-code --no-tlc -c "$${name}" -l apache "$${filename}"; \
+				./third_party/mbrukman/autogen/autogen.sh \
+					--in-place \
+					--no-code \
+					--no-tlc \
+					--copyright "$${name}" \
+					--license apache \
+					"$${filename}"; \
 			fi; \
-		done; \
-		if ! ( head Makefile | grep -iL "Copyright" > /dev/null ); then \
-			third_party/mbrukman/autogen/autogen.sh -i --no-code --no-tlc -c "$${name}" -l apache Makefile; \
-		fi;
+		done
 
 ## Formatting
 #####################################################################
@@ -185,7 +190,12 @@ json-format: node_modules/.installed ## Format JSON files.
 				'*.json5' \
 				| while IFS='' read -r f; do [ -f "$${f}" ] && echo "$${f}" || true; done \
 		); \
-		./node_modules/.bin/prettier --write --no-error-on-unmatched-pattern $${files}
+		if [ "$${files}" == "" ]; then \
+			exit 0; \
+		fi; \
+		./node_modules/.bin/prettier \
+			--write \
+			$${files}
 
 .PHONY: md-format
 md-format: node_modules/.installed ## Format Markdown files.
@@ -196,10 +206,12 @@ md-format: node_modules/.installed ## Format Markdown files.
 				'*.md' \
 				| while IFS='' read -r f; do [ -f "$${f}" ] && echo "$${f}" || true; done \
 		); \
+		if [ "$${files}" == "" ]; then \
+			exit 0; \
+		fi; \
+		# NOTE: prettier uses .editorconfig for tab-width. \
 		./node_modules/.bin/prettier \
-			--tab-width 4 \
 			--write \
-			--no-error-on-unmatched-pattern \
 			$${files}
 
 .PHONY: yaml-format
@@ -210,18 +222,27 @@ yaml-format: node_modules/.installed ## Format YAML files.
 				'*.yml' \
 				'*.yaml' \
 		); \
-		./node_modules/.bin/prettier --write --no-error-on-unmatched-pattern $${files}
+		if [ "$${files}" == "" ]; then \
+			exit 0; \
+		fi; \
+		./node_modules/.bin/prettier \
+			--write \
+			$${files}
 
 .PHONY: go-format
 go-format: $(AQUA_ROOT_DIR)/.installed ## Format Go files (gofumpt).
-	@set -euo pipefail;\
-		files=$$(git ls-files '*.go'); \
+	@set -euo pipefail; \
+		files=$$( \
+			git ls-files --deduplicate \
+				'*.go' \
+		); \
 		PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
 		AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
-		if [ "$${files}" != "" ]; then \
-			gofumpt -w $${files}; \
-			gci write  --skip-generated -s standard -s default -s "prefix($$(go list -m))" $${files}; \
-		fi
+		if [ "$${files}" == "" ]; then \
+			exit 0; \
+		fi; \
+		gofumpt -w $${files}; \
+		gci write  --skip-generated -s standard -s default -s "prefix($$(go list -m))" $${files}
 
 ## Linting
 #####################################################################
@@ -239,10 +260,16 @@ actionlint: $(AQUA_ROOT_DIR)/.installed ## Runs the actionlint linter.
 				'.github/workflows/*.yaml' \
 				| while IFS='' read -r f; do [ -f "$${f}" ] && echo "$${f}" || true; done \
 		); \
+		if [ "$${files}" == "" ]; then \
+			exit 0; \
+		fi; \
 		PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
 		AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
-			actionlint -format '{{range $$err := .}}::error file={{$$err.Filepath}},line={{$$err.Line}},col={{$$err.Column}}::{{$$err.Message}}%0A```%0A{{replace $$err.Snippet "\\n" "%0A"}}%0A```\n{{end}}' -ignore 'SC2016:' $${files}; \
+			actionlint \
+				-format '{{range $$err := .}}::error file={{$$err.Filepath}},line={{$$err.Line}},col={{$$err.Column}}::{{$$err.Message}}%0A```%0A{{replace $$err.Snippet "\\n" "%0A"}}%0A```\n{{end}}' \
+				-ignore 'SC2016:' \
+				$${files}; \
 		else \
 			actionlint $${files}; \
 		fi
@@ -258,10 +285,21 @@ zizmor: .venv/.installed ## Runs the zizmor linter.
 				'.github/workflows/*.yaml' \
 				| while IFS='' read -r f; do [ -f "$${f}" ] && echo "$${f}" || true; done \
 		); \
-		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
-			.venv/bin/zizmor --quiet --pedantic --format sarif $${files} > zizmor.sarif.json || true; \
+		if [ "$${files}" == "" ]; then \
+			exit 0; \
 		fi; \
-		.venv/bin/zizmor --quiet --pedantic --format plain $${files}
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			.venv/bin/zizmor \
+				--quiet \
+				--pedantic \
+				--format sarif \
+				$${files} > zizmor.sarif.json || true; \
+		fi; \
+		.venv/bin/zizmor \
+			--quiet \
+			--pedantic \
+			--format plain \
+			$${files}
 
 .PHONY: markdownlint
 markdownlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the markdownlint linter.
@@ -276,6 +314,9 @@ markdownlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the ma
 				':!:.github/ISSUE_TEMPLATE/*.md' \
 				| while IFS='' read -r f; do [ -f "$${f}" ] && echo "$${f}" || true; done \
 		); \
+		if [ "$${files}" == "" ]; then \
+			exit 0; \
+		fi; \
 		PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
 		AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
@@ -292,7 +333,10 @@ markdownlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the ma
 				exit "$${exit_code}"; \
 			fi; \
 		else \
-			./node_modules/.bin/markdownlint --config .markdownlint.yaml --dot $${files}; \
+			./node_modules/.bin/markdownlint \
+				--config .markdownlint.yaml \
+				--dot \
+				$${files}; \
 		fi; \
 		files=$$( \
 			git ls-files --deduplicate \
@@ -300,6 +344,9 @@ markdownlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the ma
 				'.github/ISSUE_TEMPLATE/*.md' \
 				| while IFS='' read -r f; do [ -f "$${f}" ] && echo "$${f}" || true; done \
 		); \
+		if [ "$${files}" == "" ]; then \
+			exit 0; \
+		fi; \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 			exit_code=0; \
 			while IFS="" read -r p && [ -n "$$p" ]; do \
@@ -314,7 +361,10 @@ markdownlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the ma
 				exit "$${exit_code}"; \
 			fi; \
 		else \
-			./node_modules/.bin/markdownlint  --config .github/template.markdownlint.yaml --dot $${files}; \
+			./node_modules/.bin/markdownlint \
+				--config .github/template.markdownlint.yaml \
+				--dot \
+				$${files}; \
 		fi
 
 .PHONY: renovate-config-validator
@@ -331,6 +381,9 @@ textlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the textli
 				':!:requirements.txt' \
 				| while IFS='' read -r f; do [ -f "$${f}" ] && echo "$${f}" || true; done \
 		); \
+		if [ "$${files}" == "" ]; then \
+			exit 0; \
+		fi; \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 			exit_code=0; \
 			while IFS="" read -r p && [ -n "$$p" ]; do \
@@ -346,7 +399,36 @@ textlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the textli
 			done <<< "$$(./node_modules/.bin/textlint -c .textlintrc.yaml --format json $${files} 2>&1 | jq -c '.[]')"; \
 			exit "$${exit_code}"; \
 		else \
-			./node_modules/.bin/textlint -c .textlintrc.yaml $${files}; \
+			./node_modules/.bin/textlint \
+				--config .textlintrc.yaml \
+				$${files}; \
+		fi
+
+.PHONY: todos
+todos: $(AQUA_ROOT_DIR)/.installed ## Check for outstanding TODOs.
+	@set -euo pipefail;\
+		files=$$( \
+			git ls-files --deduplicate \
+				| while IFS='' read -r f; do [ -f "$${f}" ] && echo "$${f}" || true; done \
+		); \
+		if [ "$${files}" == "" ]; then \
+			exit 0; \
+		fi; \
+		PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
+		AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
+		output="default"; \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			output="github"; \
+		fi; \
+		TODOS=$$( \
+			todos \
+				--output "$${output}" \
+				--todo-types="FIXME,Fixme,fixme,BUG,Bug,bug,XXX,COMBAK" \
+		); \
+		# TODO: remove when todos v0.13.0 is released. \
+		if [ "$${TODOS}" != "" ]; then \
+			echo "$${TODOS}"; \
+			exit 1; \
 		fi
 
 .PHONY: yamllint
@@ -359,10 +441,18 @@ yamllint: .venv/.installed ## Runs the yamllint linter.
 				'*.yaml' \
 				| while IFS='' read -r f; do [ -f "$${f}" ] && echo "$${f}" || true; done \
 		); \
-		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
-			extraargs="-f github"; \
+		if [ "$${files}" == "" ]; then \
+			exit 0; \
 		fi; \
-		.venv/bin/yamllint --strict -c .yamllint.yaml $${extraargs} $${files}
+		format="standard"; \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			format="github"; \
+		fi; \
+		.venv/bin/yamllint \
+			--strict \
+			--config-file .yamllint.yaml \
+			--format "$${format}" \
+			$${files}
 
 .PHONY: golangci-lint
 golangci-lint: $(AQUA_ROOT_DIR)/.installed ## Runs the golangci-lint linter.

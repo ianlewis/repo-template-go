@@ -13,7 +13,7 @@
 
     // Add Aqua present to allow updating CLI tools.
     // https://aquaproj.github.io/docs/guides/renovate/
-    "github>aquaproj/aqua-renovate-config#2.7.5",
+    "github>aquaproj/aqua-renovate-config#2.8.1",
 
     // Update version numbers in Makefile.
     // https://docs.renovatebot.com/presets-customManagers/#custommanagersmakefileversions
@@ -32,6 +32,16 @@
 
   // Group various ecosystem updates. Security updates are always separate.
   packageRules: [
+    {
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "aqua",
+      matchFileNames: ["aqua.yaml", "aqua-checksums.yaml"],
+    },
+    {
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "makefile",
+      matchFileNames: ["Makefile"],
+    },
     {
       matchManagers: ["github-actions"],
       matchUpdateTypes: ["minor", "patch"],

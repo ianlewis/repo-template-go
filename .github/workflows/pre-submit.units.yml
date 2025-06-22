@@ -156,7 +156,6 @@ jobs:
           go-version-file: "go.mod"
       - run: make golangci-lint
 
-
   markdownlint:
     runs-on: ubuntu-latest
     steps:

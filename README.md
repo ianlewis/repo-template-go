@@ -3,6 +3,7 @@
 <!-- TODO: update badge urls -->
 
 [![tests](https://github.com/ianlewis/repo-template-go/actions/workflows/pre-submit.units.yml/badge.svg)](https://github.com/ianlewis/repo-template-go/actions/workflows/pre-submit.units.yml)
+[![Codecov](https://codecov.io/gh/ianlewis/repo-template-go/graph/badge.svg?token=DZSUT59QV0)](https://codecov.io/gh/ianlewis/repo-template-go)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ianlewis/repo-template-go/badge)](https://securityscorecards.dev/viewer/?uri=github.com%2Fianlewis%2Frepo-template-go)
 
 <!-- TODO: Update README contents. -->
@@ -20,13 +21,13 @@ repository starter template.
 A set of [formatters and linters](#formatting-and-linting) are maintained to
 maintain repository code and configuration quality through PR checks.
 
-### Consistency
+### Consistency & Reproducibility
 
-We want the template to work as consistently as possible by minimizing issues
-due to conflicting installed package versions. Running commands and tools
-locally should have the same result between different local development
-machines and CI. Recommended language runtime versions are set via their
-respective ecosystem tooling.
+Repositories created by this template should work as consistently as possible by
+minimizing issues due to conflicting installed package versions. Running
+commands and tools locally should have the same result between different local
+development machines and CI. Recommended language runtime versions are set via
+their respective ecosystem tooling.
 
 This template strives to minimize outside dependencies on tools and
 configuration requiring only a [minimal set](#requirements) of Unix userspace
@@ -69,13 +70,19 @@ Required runtimes:
 The following tools need to be installed:
 
 - [`git`]: For repository management.
-- `awk`, `bash`, `grep`, `head`, `rm`, `sha256sum`: Standard Unix tools.
+- `awk`, `bash`, `grep`, `head`, `rm`, `sha256sum`, `uname`: Standard
+  Unix tools.
+- GNU `make`: For running commands.
+- `curl`, `tar`, `gzip`: For extracting archives.
 
 The following tools are automatically installed locally to the project and
 don't need to be pre-installed:
 
 - [`actionlint`]: For linting GitHub Actions workflows (installed by Aqua in
   `.aqua`).
+- [`golangci-lint`]: For linting Go code (installed by Aqua in `.aqua`).
+- [`gofumpt`]: For formatting Go code (installed as Go tool dependency).
+- [`gci`]: For formatting Go imports (installed as Go tool dependency).
 - [`jq`]: For parsing output of some linters (installed by Aqua in `.aqua`).
 - [`markdownlint`]: For linting markdown (installed in local `node_modules`).
 - [`mbrukman/autogen`]: For adding license headers (vendored in `third_party`).
@@ -90,9 +97,6 @@ don't need to be pre-installed:
   `.venv`).
 - [`zizmor`]: For linting GitHub Actions workflows (installed in local Python
   virtualenv `.venv`).
-- [`golangci-lint`]: For linting Go code (installed by Aqua in `.aqua`).
-- [`gofumpt`]: For formatting Go code (installed as Go tool dependency).
-- [`gci`]: For formatting Go imports (installed as Go tool dependency).
 
 ## Usage
 
@@ -131,21 +135,22 @@ Tools
   license-headers           Update license headers.
 Formatting
   format                    Format all files
+  go-format                 Format Go files (gofumpt).
   json-format               Format JSON files.
   md-format                 Format Markdown files.
   yaml-format               Format YAML files.
-  go-format                 Format Go files (gofumpt).
 Linting
   lint                      Run all linters.
   actionlint                Runs the actionlint linter.
-  zizmor                    Runs the zizmor linter.
+  fixme                     Check for outstanding FIXMEs.
+  golangci-lint             Runs the golangci-lint linter.
   markdownlint              Runs the markdownlint linter.
   renovate-config-validator Validate Renovate configuration.
   textlint                  Runs the textlint linter.
-  todos                     Check for outstanding TODOs.
   yamllint                  Runs the yamllint linter.
-  golangci-lint             Runs the golangci-lint linter.
+  zizmor                    Runs the zizmor linter.
 Maintenance
+  todos                     Check for outstanding TODOs.
   clean                     Delete temporary files.
 ```
 
@@ -176,7 +181,7 @@ The `license-headers` make target will add license headers to files that are
 missing it with the Copyright holder set to the current value of `git config
 user.name`.
 
-Files are checked for the existence license headers in pre-submits.
+Files are checked for the existence license headers in status checks.
 
 ## Project documentation
 
@@ -186,45 +191,66 @@ This repository template includes stub documentation. Examples of
 maintained in line with [GitHub recommended community
 standards](https://opensource.guide/).
 
-## Recommended repository settings
+## Repository creation checklist
+
+When creating a new repository from this template, the following checklist
+is recommended to ensure the repository is set up correctly.
+
+### Update configuration files
+
+Files that should be updated include a TODO comment to indicate what changes
+should made. You can run `make todos` to list all TODOs in the repository.
+
+```shell
+$ make todos
+.github/workflows/pre-submit.units.yml:113:# TODO: Remove the next line for private repositories with GitHub Advanced Security.
+.github/workflows/schedule.scorecard.yml:80:# TODO: Remove the next line for private repositories with GitHub Advanced Security.
+CODEOWNERS:1:# TODO: Update CODEOWNERS
+CODE_OF_CONDUCT.md:61:<!-- TODO: update Code of Conduct contact email -->
+README.md:3:<!-- TODO: update badge urls -->
+README.md:7:<!-- TODO: Update README contents. -->
+```
+
+### Recommended repository settings
 
 The following repository settings are recommended in conjunction with this
 repository template.
 
-### Rules
+#### Rulesets
 
 A `ruleset` should be created for the default branch with branch protection
 rules that follow the [recommendations from OpenSSF
 Scorecard](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection)
 as closely as possible.
 
-#### Required Checks
+##### Required Checks
 
 The following checks should be marked as required:
 
 - [ ] `actionlint`
+- [ ] `fixme`
 - [ ] `formatting`
 - [ ] `golangci-lint`
 - [ ] `licence-headers`
 - [ ] `markdownlint`
 - [ ] `renovate-config-validator`
 - [ ] `textlint`
-- [ ] `todos`
 - [ ] `yamllint`
+- [ ] `zizmor`
 
-#### Require code scanning results
+##### Require code scanning results
 
 The following tools should be added to the required code scanning results.
 
 - [ ] `CodeQL`
 - [ ] `zizmor`
 
-### Code security
+#### Code security
 
 1. [ ] **Private vulnerability reporting:**
-       Enable private vulnerability reporting as mentioned in [`SECURITY.md`].
+       Enable [private vulnerability reporting] as mentioned in [`SECURITY.md`].
 
-#### Code scanning
+##### Code scanning
 
 1. [ ] **CodeQL analysis:**
        Make sure "GitHub Actions (Public Preview)" is enabled in languages.
@@ -259,6 +285,7 @@ git merge --no-edit --signoff --squash --allow-unrelated-histories repo-template
 PRs may be accepted to this template. See [`CONTRIBUTING.md`] for contributor
 documentation.
 
+[private vulnerability reporting]: https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository
 [`CONTRIBUTING.md`]: ./CONTRIBUTING.md
 [`SECURITY.md`]: ./SECURITY.md
 [`Go`]: https://go.dev/

@@ -111,7 +111,7 @@ unit-test: go-test ## Runs all unit tests.
 
 .PHONY: go-test
 go-test: ## Runs Go unit tests.
-	@set -e;\
+	@set -euo pipefail; \
 		go mod vendor; \
 		extraargs=""; \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
@@ -124,7 +124,7 @@ go-test: ## Runs Go unit tests.
 
 .PHONY: go-benchmark
 go-benchmark: ## Runs Go benchmarks.
-	@set -e;\
+	@set -euo pipefail; \
 		go mod vendor; \
 		extraargs=""; \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \

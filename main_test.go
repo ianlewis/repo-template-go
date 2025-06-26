@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Ian Lewis
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,19 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// command repo-template-go is a simple Hello World program.
 package main
 
 import (
-	"fmt"
-	"io"
-	"os"
+	"strings"
+	"testing"
 )
 
-func hello(w io.Writer) {
-	fmt.Fprintln(w, "Hello World!")
-}
+func TestHello(t *testing.T) {
+	want := "Hello World!\n"
 
-func main() {
-	hello(os.Stdout)
+	var b strings.Builder
+	hello(&b)
+	got := b.String()
+
+	if got != want {
+		t.Errorf("hello() = %q, want %q", got, want)
+	}
 }

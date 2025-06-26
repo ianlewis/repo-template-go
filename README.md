@@ -61,7 +61,16 @@ work on MacOS or Windows given a `bash` environment, but this is not tested.
 In general, dependencies on outside tools should be minimized in favor of
 including them as project-local dependencies.
 
-Required runtimes:
+The following language runtimes are required. It is recommended to use a tool
+that can manage multiple language runtime versions such as
+[`pyenv`](https://github.com/pyenv/pyenv),
+[`nodenv`](https://github.com/nodenv/nodenv),
+[`nvm`](https://github.com/nvm-sh/nvm), or [`asdf`](https://asdf-vm.com/). This
+repository includes `.node-version` and `.python-version` files to specify the
+language runtime versions to use for maximum compatibility with these tools.
+
+The Go runtime can manage its own upgrading and versioning via [Go
+Toolchains](https://go.dev/doc/toolchain).
 
 - [`Go`]: The Go runtime needs to be installed.
 - [`Node.js`]: Node.js is required to run some linters and formatters.

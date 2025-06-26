@@ -22,6 +22,7 @@ rules:
     language: "en"
     skipPatterns:
       - "Codecov" # Code coverage service
+      - "/[Tt]oolchain/"
 
       - "CHANGELOG"
       - "CODEOWNER"

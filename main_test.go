@@ -20,12 +20,14 @@ import (
 )
 
 func TestHello(t *testing.T) {
-	want := "Hello World!\n"
+	t.Parallel()
 
 	var b strings.Builder
+
 	hello(&b)
 	got := b.String()
 
+	want := "Hello World!\n"
 	if got != want {
 		t.Errorf("hello() = %q, want %q", got, want)
 	}

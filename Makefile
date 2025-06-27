@@ -193,8 +193,9 @@ go-format: $(AQUA_ROOT_DIR)/.installed ## Format Go files (gofumpt).
 		if [ "$${files}" == "" ]; then \
 			exit 0; \
 		fi; \
-		gofumpt -w $${files}; \
-		gci write  --skip-generated -s standard -s default -s "prefix($$(go list -m))" $${files}
+		gofumpt -l -w $${files}; \
+		goimports -l -w $${files}; \
+		gci write --skip-generated --skip-vendor -s standard -s default -s localmodule $${files}
 
 .PHONY: json-format
 json-format: node_modules/.installed ## Format JSON files.

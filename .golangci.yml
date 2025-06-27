@@ -381,7 +381,10 @@ linters:
             - $all
             - "!$test"
           allow:
+            # Go standard library
             - $gostd
+
+            # TODO: Update depguard configuration for this project.
             - github.com/ianlewis/repo-template-go
           deny:
             - pkg: reflect
@@ -390,10 +393,17 @@ linters:
               desc: Please don't use unsafe package
         test:
           files:
+            # Go test files
             - $test
           allow:
+            # Go standard library
             - $gostd
+
+            # TODO: Update depguard configuration for this project.
             - github.com/ianlewis/repo-template-go
+
+            # TODO: Add dependencies.
+            # - "github.com/google/go-cmp/cmp"
           deny:
             - pkg: reflect
               desc: Use go-cmp instead.

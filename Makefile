@@ -26,9 +26,9 @@ REPO_ROOT = $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 REPO_NAME = $(shell basename "$(REPO_ROOT)")
 
 # renovate: datasource=github-releases depName=aquaproj/aqua versioning=loose
-AQUA_VERSION ?= v2.53.1
+AQUA_VERSION ?= v2.53.3
 AQUA_REPO ?= github.com/aquaproj/aqua
-AQUA_CHECKSUM.Linux.x86_64 = 831991f27315f6b14308c85b8750d67ad27c45b2e0399d9300b96b9b8b50d573
+AQUA_CHECKSUM.Linux.x86_64 = 2450bcf687c93e91ec892d49e5787b5b856796d38eb7283f52a351d82a8e31ee
 AQUA_CHECKSUM ?= $(AQUA_CHECKSUM.$(uname_s).$(uname_m))
 AQUA_URL = https://$(AQUA_REPO)/releases/download/$(AQUA_VERSION)/aqua_$(kernel)_$(arch).tar.gz
 AQUA_ROOT_DIR = $(REPO_ROOT)/.aqua
@@ -80,12 +80,12 @@ package-lock.json: package.json
 node_modules/.installed: package-lock.json
 	@npm clean-install
 	@npm audit signatures
-	@touch node_modules/.installed
+	@touch $@
 
 .venv/bin/activate:
 	@python -m venv .venv
 
-.venv/.installed: requirements.txt .venv/bin/activate
+.venv/.installed: requirements-dev.txt .venv/bin/activate
 	@./.venv/bin/pip install -r $< --require-hashes
 	@touch $@
 
@@ -375,12 +375,14 @@ textlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the textli
 			git ls-files --deduplicate \
 				'*.md' \
 				'*.txt' \
-				':!:requirements.txt' \
+				':!:requirements*.txt' \
 				| while IFS='' read -r f; do [ -f "$${f}" ] && echo "$${f}" || true; done \
 		); \
 		if [ "$${files}" == "" ]; then \
 			exit 0; \
 		fi; \
+		PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
+		AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 			exit_code=0; \
 			while IFS="" read -r p && [ -n "$$p" ]; do \
@@ -404,7 +406,6 @@ textlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the textli
 .PHONY: yamllint
 yamllint: .venv/.installed ## Runs the yamllint linter.
 	@set -euo pipefail;\
-		extraargs=""; \
 		files=$$( \
 			git ls-files --deduplicate \
 				'*.yml' \
@@ -440,10 +441,11 @@ zizmor: .venv/.installed ## Runs the zizmor linter.
 		fi; \
 		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 			.venv/bin/zizmor \
+				--config .zizmor.yml \
 				--quiet \
 				--pedantic \
 				--format sarif \
-				$${files} > zizmor.sarif.json || true; \
+				$${files} > zizmor.sarif.json; \
 		fi; \
 		.venv/bin/zizmor \
 			--config .zizmor.yml \

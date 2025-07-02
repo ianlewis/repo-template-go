@@ -254,10 +254,20 @@ The following tools should be added to the required code scanning results.
 - [ ] `CodeQL`
 - [ ] `zizmor`
 
-#### Code security
+#### Advanced Security
 
 1. [ ] **Private vulnerability reporting:**
        Enable [private vulnerability reporting] as mentioned in [`SECURITY.md`].
+2. [ ] **Dependency Graph:**
+       Enable the [dependency graph] and automatic dependency submission.
+       Renovate relies on dependency graph for its [vulnerability
+       alerts](https://docs.renovatebot.com/configuration-options/#vulnerabilityalerts)
+       feature.
+3. [ ] **Dependabot Alerts:**
+       Enable [Dependabot alerts]. Renovate relies on Dependabot alerts for its
+       [vulnerability
+       alerts](https://docs.renovatebot.com/configuration-options/#vulnerabilityalerts)
+       feature.
 
 ##### Code scanning
 
@@ -294,6 +304,8 @@ git merge --no-edit --signoff --squash --allow-unrelated-histories repo-template
 PRs may be accepted to this template. See [`CONTRIBUTING.md`] for contributor
 documentation.
 
+[Dependabot alerts]: https://docs.github.com/en/code-security/dependabot/dependabot-alerts/about-dependabot-alerts
+[dependency graph]: https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph
 [private vulnerability reporting]: https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository
 [`CONTRIBUTING.md`]: ./CONTRIBUTING.md
 [`SECURITY.md`]: ./SECURITY.md

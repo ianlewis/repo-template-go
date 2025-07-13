@@ -2,7 +2,7 @@
 
 <!-- TODO: update badge urls -->
 
-[![tests](https://github.com/ianlewis/repo-template-go/actions/workflows/pre-submit.units.yml/badge.svg)](https://github.com/ianlewis/repo-template-go/actions/workflows/pre-submit.units.yml)
+[![tests](https://github.com/ianlewis/repo-template-go/actions/workflows/pull_request.tests.yml/badge.svg)](https://github.com/ianlewis/repo-template-go/actions/workflows/pull_request.tests.yml)
 [![Codecov](https://codecov.io/gh/ianlewis/repo-template-go/graph/badge.svg?token=DZSUT59QV0)](https://codecov.io/gh/ianlewis/repo-template-go)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ianlewis/repo-template-go/badge)](https://securityscorecards.dev/viewer/?uri=github.com%2Fianlewis%2Frepo-template-go)
 

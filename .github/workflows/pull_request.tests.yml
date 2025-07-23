@@ -51,6 +51,9 @@ jobs:
   actionlint:
     uses: ./.github/workflows/workflow_call.actionlint.yml
 
+  commitlint:
+    uses: ./.github/workflows/workflow_call.commitlint.yml
+
   fixme:
     uses: ./.github/workflows/workflow_call.fixme.yml
 

@@ -16,10 +16,10 @@ name: tests
 
 on:
   push:
-    branches: [main]
+    branches: ["main"]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [main]
+    branches: ["*"]
   workflow_call:
   workflow_dispatch:
 
@@ -31,6 +31,11 @@ permissions:
 #       just a human-readable label.
 
 jobs:
+  tests:
+    uses: ./.github/workflows/workflow_call.tests.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
   # Check license headers
   ###############################
   license-headers:
@@ -51,6 +56,9 @@ jobs:
 
   fixme:
     uses: ./.github/workflows/workflow_call.fixme.yml
+
+  golangci-lint:
+    uses: ./.github/workflows/workflow_call.golangci-lint.yml
 
   markdownlint:
     uses: ./.github/workflows/workflow_call.markdownlint.yml

@@ -137,26 +137,26 @@ unit-test: go-test ## Runs all unit tests.
 
 .PHONY: go-test
 go-test: ## Runs Go unit tests.
-	@set -euo pipefail; \
-		go mod vendor; \
-		extraargs=""; \
-		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
-			extraargs="-v"; \
-		fi; \
-		go test $$extraargs -mod=vendor -race -coverprofile=coverage.out -covermode=atomic ./...
+	@# bash \
+	go mod vendor; \
+	extraargs=""; \
+	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+		extraargs="-v"; \
+	fi; \
+	go test $$extraargs -mod=vendor -race -coverprofile=coverage.out -covermode=atomic ./...
 
 ## Benchmarking
 #####################################################################
 
 .PHONY: go-benchmark
 go-benchmark: ## Runs Go benchmarks.
-	@set -euo pipefail; \
-		go mod vendor; \
-		extraargs=""; \
-		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
-			extraargs="-v"; \
-		fi; \
-		go test $$extraargs -mod=vendor -bench=. -count=$(TESTCOUNT) -benchtime=$(BENCHTIME) -run='^#' ./...
+	@# bash \
+	go mod vendor; \
+	extraargs=""; \
+	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+		extraargs="-v"; \
+	fi; \
+	go test $$extraargs -mod=vendor -bench=. -count=$(TESTCOUNT) -benchtime=$(BENCHTIME) -run='^#' ./...
 
 ## Tools
 #####################################################################
@@ -208,19 +208,19 @@ format: go-format json-format md-format yaml-format ## Format all files
 
 .PHONY: go-format
 go-format: $(AQUA_ROOT_DIR)/.installed ## Format Go files (gofumpt).
-	@set -euo pipefail; \
-		files=$$( \
-			git ls-files --deduplicate \
-				'*.go' \
-		); \
-		PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
-		AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
-		if [ "$${files}" == "" ]; then \
-			exit 0; \
-		fi; \
-		gofumpt -l -w $${files}; \
-		goimports -l -w $${files}; \
-		gci write --skip-generated --skip-vendor -s standard -s default -s localmodule $${files}
+	@# bash \
+	files=$$( \
+		git ls-files --deduplicate \
+			'*.go' \
+	); \
+	PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
+	AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
+	if [ "$${files}" == "" ]; then \
+		exit 0; \
+	fi; \
+	gofumpt -l -w $${files}; \
+	goimports -l -w $${files}; \
+	gci write --skip-generated --skip-vendor -s standard -s default -s localmodule $${files}
 
 .PHONY: json-format
 json-format: node_modules/.installed ## Format JSON files.
@@ -359,10 +359,10 @@ fixme: $(AQUA_ROOT_DIR)/.installed ## Check for outstanding FIXMEs.
 
 .PHONY: golangci-lint
 golangci-lint: $(AQUA_ROOT_DIR)/.installed ## Runs the golangci-lint linter.
-	@set -euo pipefail;\
-		PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
-		AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
-		golangci-lint run -c .golangci.yml ./...
+	@# bash \
+	PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
+	AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
+	golangci-lint run -c .golangci.yml ./...
 
 .PHONY: markdownlint
 markdownlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the markdownlint linter.

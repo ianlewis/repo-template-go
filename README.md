@@ -80,8 +80,8 @@ Toolchains](https://go.dev/doc/toolchain).
 The following tools need to be installed:
 
 - [`git`]: For repository management.
-- `awk`, `bash`, `grep`, `head`, `rm`, `sha256sum`, `uname`: Standard
-  Unix tools.
+- `awk`, `basename` `bash`, `dirname`, `grep`, `head`, `rm`, `sha256sum`,
+  `uname`: Standard Unix tools.
 - GNU `make`: For running commands.
 - `curl`, `tar`, `gzip`: For extracting archives.
 

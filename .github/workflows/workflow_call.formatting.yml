@@ -32,7 +32,10 @@ jobs:
         with:
           node-version-file: ".node-version"
       # TODO(#288): Use make format-check target.
-      - run: make format
+      - name: format
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: make format
       - name: check diff
         run: |
           set -euo pipefail

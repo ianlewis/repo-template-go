@@ -1,15 +1,18 @@
-# `repo-template`
+# `repo-template-go`
 
 <!-- TODO: update badge urls -->
 
-[![tests](https://github.com/ianlewis/repo-template/actions/workflows/pull_request.tests.yml/badge.svg)](https://github.com/ianlewis/repo-template/actions/workflows/pull_request.tests.yml)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ianlewis/repo-template/badge)](https://securityscorecards.dev/viewer/?uri=github.com%2Fianlewis%2Frepo-template)
+[![tests](https://github.com/ianlewis/repo-template-go/actions/workflows/pull_request.tests.yml/badge.svg)](https://github.com/ianlewis/repo-template-go/actions/workflows/pull_request.tests.yml)
+[![Codecov](https://codecov.io/gh/ianlewis/repo-template-go/graph/badge.svg?token=DZSUT59QV0)](https://codecov.io/gh/ianlewis/repo-template-go)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ianlewis/repo-template-go/badge)](https://securityscorecards.dev/viewer/?uri=github.com%2Fianlewis%2Frepo-template-go)
 
 <!-- TODO: Update README contents. -->
 
+Repository template for Go repositories under `github.com/ianlewis`.
+
 This repository template is maintained for use in repositories under
-`github.com/ianlewis`. However, it can be used as a general purpose repository
-starter template.
+`github.com/ianlewis`. However, it can be used as a general purpose Go
+repository starter template.
 
 ## Goals
 
@@ -67,6 +70,10 @@ that can manage multiple language runtime versions such as
 repository includes `.node-version` and `.python-version` files to specify the
 language runtime versions to use for maximum compatibility with these tools.
 
+The Go runtime can manage its own upgrading and versioning via [Go
+Toolchains](https://go.dev/doc/toolchain).
+
+- [`Go`]: The Go runtime needs to be installed.
 - [`Node.js`]: Node.js is required to run some linters and formatters.
 - [`Python`]: Python is required to run some linters and formatters.
 
@@ -85,6 +92,9 @@ don't need to be pre-installed:
   `.aqua`).
 - [`commitlint`]: For checking commit messages (installed by local
   `node_modules`).
+- [`golangci-lint`]: For linting Go code (installed by Aqua in `.aqua`).
+- [`gofumpt`]: For formatting Go code (installed as Go tool dependency).
+- [`gci`]: For formatting Go imports (installed as Go tool dependency).
 - [`jq`]: For parsing output of some linters (installed by Aqua in `.aqua`).
 - [`markdownlint`]: For linting markdown (installed in local `node_modules`).
 - [`mbrukman/autogen`]: For adding license headers (vendored in `third_party`).
@@ -105,6 +115,17 @@ don't need to be pre-installed:
 The repository is organized to be as self-contained as possible. Commands are
 implemented in the project [Makefile](#makefile).
 
+1. Update `go.mod`
+
+    The `module` directive in `go.mod` must be updated to the correct module
+    name. The `go` directive should be updated to the required Go version.
+
+    ```text
+    module github.com/user/repo
+
+    go 1.23.2
+    ```
+
 ### Makefile
 
 The `Makefile` is used for running commands, managing files, and maintaining
@@ -113,14 +134,20 @@ and their descriptions grouped by function.
 
 ```shell
 $ make
-repo-template Makefile
+repo-template-go Makefile
 Usage: make [COMMAND]
 
   help                      Print all Makefile targets (this message).
+Testing
+  unit-test                 Runs all unit tests.
+  go-test                   Runs Go unit tests.
+Benchmarking
+  go-benchmark              Runs Go benchmarks.
 Tools
   license-headers           Update license headers.
 Formatting
   format                    Format all files
+  go-format                 Format Go files (gofumpt).
   json-format               Format JSON files.
   md-format                 Format Markdown files.
   yaml-format               Format YAML files.
@@ -129,6 +156,7 @@ Linting
   actionlint                Runs the actionlint linter.
   commitlint                Run commitlint linter.
   fixme                     Check for outstanding FIXMEs.
+  golangci-lint             Runs the golangci-lint linter.
   markdownlint              Runs the markdownlint linter.
   renovate-config-validator Validate Renovate configuration.
   textlint                  Runs the textlint linter.
@@ -242,6 +270,7 @@ to achieve the highest Tier and score as possible.
     - [ ] `actionlint / actionlint`
     - [ ] `commitlint / commitlint`
     - [ ] `formatting / formatting`
+    - [ ] `golangci-lint / golangci-lint`
     - [ ] `license-headers / license-headers`
     - [ ] `markdownlint / markdownlint`
     - [ ] `renovate-config-validator / renovate-config-validator`
@@ -311,24 +340,14 @@ commit on your commit history.
 
 ```shell
 # One time step: Add the repository template as a remote.
-git remote add repo-template git@github.com:ianlewis/repo-template.git
+git remote add repo-template-go git@github.com:ianlewis/repo-template-go.git
 
-# Fetch the latest version of the repo-template.
-git fetch repo-template main
+# Fetch the latest version of the repo-template-go.
+git fetch repo-template-go main
 
 # Create a new squash merge commit.
-git merge --no-edit --signoff --squash --allow-unrelated-histories repo-template/main
+git merge --no-edit --signoff --squash --allow-unrelated-histories repo-template-go/main
 ```
-
-## Language-specific templates
-
-A number of language specific templates based on this template are also available:
-
-| Language              | Repository                                                                  |
-| --------------------- | --------------------------------------------------------------------------- |
-| Go                    | [`ianlewis/repo-template-go`](https://github.com/ianlewis/repo-template-go) |
-| Python                | [`ianlewis/repo-template-py`](https://github.com/ianlewis/repo-template-py) |
-| TypeScript/JavaScript | [`ianlewis/repo-template-ts`](https://github.com/ianlewis/repo-template-ts) |
 
 ## Contributing
 
@@ -340,12 +359,16 @@ documentation.
 [private vulnerability reporting]: https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository
 [`CONTRIBUTING.md`]: ./CONTRIBUTING.md
 [`SECURITY.md`]: ./SECURITY.md
+[`Go`]: https://go.dev/
 [`Node.js`]: https://nodejs.org/
 [`Python`]: https://www.python.org/
 [`actionlint`]: https://github.com/rhysd/actionlint
 [`commitlint`]: https://commitlint.js.org/
 [`mbrukman/autogen`]: https://github.com/mbrukman/autogen
+[`gci`]: https://github.com/daixiang0/gci
 [`git`]: https://git-scm.com/
+[`gofumpt`]: https://github.com/mvdan/gofumpt
+[`golangci-lint`]: https://github.com/golangci/golangci-lint
 [`jq`]: https://jqlang.org/
 [`markdownlint`]: https://github.com/DavidAnson/markdownlint
 [`prettier`]: https://prettier.io/

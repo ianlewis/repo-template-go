@@ -42,6 +42,9 @@ export AQUA_ROOT_DIR = $(REPO_ROOT)/.aqua
 # Ensure that aqua and aqua installed tools are in the PATH.
 export PATH := $(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$(PATH)
 
+BENCHTIME ?= 1s
+TESTCOUNT ?= 1
+
 # The help command prints targets in groups. Help documentation in the Makefile
 # uses comments with double hash marks (##). Documentation is printed by the
 # help target in the order in appears in the Makefile.
@@ -152,6 +155,35 @@ $(AQUA_ROOT_DIR)/.installed: .aqua.yaml .bin/aqua-$(AQUA_VERSION)/aqua
 		install; \
 	touch $@
 
+## Testing
+#####################################################################
+
+.PHONY: unit-test
+unit-test: go-test ## Runs all unit tests.
+
+.PHONY: go-test
+go-test: ## Runs Go unit tests.
+	@# bash \
+	go mod vendor; \
+	extraargs=""; \
+	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+		extraargs="-v"; \
+	fi; \
+	go test $$extraargs -mod=vendor -race -coverprofile=coverage.out -covermode=atomic ./...
+
+## Benchmarking
+#####################################################################
+
+.PHONY: go-benchmark
+go-benchmark: ## Runs Go benchmarks.
+	@# bash \
+	go mod vendor; \
+	extraargs=""; \
+	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+		extraargs="-v"; \
+	fi; \
+	go test $$extraargs -mod=vendor -bench=. -count=$(TESTCOUNT) -benchtime=$(BENCHTIME) -run='^#' ./...
+
 ## Tools
 #####################################################################
 
@@ -198,7 +230,23 @@ license-headers: ## Update license headers.
 #####################################################################
 
 .PHONY: format
-format: json-format md-format yaml-format ## Format all files
+format: go-format json-format md-format yaml-format ## Format all files
+
+.PHONY: go-format
+go-format: $(AQUA_ROOT_DIR)/.installed ## Format Go files (gofumpt).
+	@# bash \
+	files=$$( \
+		git ls-files --deduplicate \
+			'*.go' \
+	); \
+	PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
+	AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
+	if [ "$${files}" == "" ]; then \
+		exit 0; \
+	fi; \
+	gofumpt -l -w $${files}; \
+	goimports -l -w $${files}; \
+	gci write --skip-generated --skip-vendor -s standard -s default -s localmodule $${files}
 
 .PHONY: json-format
 json-format: node_modules/.installed ## Format JSON files.
@@ -269,7 +317,7 @@ yaml-format: node_modules/.installed ## Format YAML files.
 #####################################################################
 
 .PHONY: lint
-lint: actionlint commitlint fixme markdownlint renovate-config-validator textlint yamllint zizmor ## Run all linters.
+lint: actionlint commitlint fixme golangci-lint markdownlint renovate-config-validator textlint yamllint zizmor ## Run all linters.
 
 .PHONY: actionlint
 actionlint: $(AQUA_ROOT_DIR)/.installed ## Runs the actionlint linter.
@@ -330,6 +378,13 @@ fixme: $(AQUA_ROOT_DIR)/.installed ## Check for outstanding FIXMEs.
 	todos \
 		--output "$${output}" \
 		--todo-types="FIXME,Fixme,fixme,BUG,Bug,bug,XXX,COMBAK"
+
+.PHONY: golangci-lint
+golangci-lint: $(AQUA_ROOT_DIR)/.installed ## Runs the golangci-lint linter.
+	@# bash \
+	PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
+	AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
+	golangci-lint run -c .golangci.yml ./...
 
 .PHONY: markdownlint
 markdownlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the markdownlint linter.
@@ -511,4 +566,6 @@ clean: ## Delete temporary files.
 		$(AQUA_ROOT_DIR) \
 		.venv \
 		node_modules \
-		*.sarif.json
+		*.sarif.json \
+		vendor \
+		coverage.out

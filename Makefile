@@ -239,8 +239,6 @@ go-format: $(AQUA_ROOT_DIR)/.installed ## Format Go files (gofumpt).
 		git ls-files --deduplicate \
 			'*.go' \
 	); \
-	PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
-	AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
 	if [ "$${files}" == "" ]; then \
 		exit 0; \
 	fi; \
@@ -382,8 +380,6 @@ fixme: $(AQUA_ROOT_DIR)/.installed ## Check for outstanding FIXMEs.
 .PHONY: golangci-lint
 golangci-lint: $(AQUA_ROOT_DIR)/.installed ## Runs the golangci-lint linter.
 	@# bash \
-	PATH="$(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$${PATH}"; \
-	AQUA_ROOT_DIR="$(AQUA_ROOT_DIR)"; \
 	golangci-lint run -c .golangci.yml ./...
 
 .PHONY: markdownlint

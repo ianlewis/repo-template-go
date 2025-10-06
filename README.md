@@ -90,6 +90,7 @@ don't need to be pre-installed:
 
 - [`actionlint`]: For linting GitHub Actions workflows (installed by Aqua in
   `.aqua`).
+- [`checkmake`]: For linting `Makefile` (installed by Aqua in `.aqua`).
 - [`commitlint`]: For checking commit messages (installed by local
   `node_modules`).
 - [`golangci-lint`]: For linting Go code (installed by Aqua in `.aqua`).
@@ -138,24 +139,28 @@ repo-template-go Makefile
 Usage: make [COMMAND]
 
   help                      Print all Makefile targets (this message).
+Build
+  all                       Build everything.
+  build                     Build the main binary.
 Testing
+  test                      Run all linters and tests.
   unit-test                 Runs all unit tests.
-  go-test                   Runs Go unit tests.
 Benchmarking
   go-benchmark              Runs Go benchmarks.
-Tools
-  license-headers           Update license headers.
 Formatting
   format                    Format all files
   go-format                 Format Go files (gofumpt).
   json-format               Format JSON files.
+  license-headers           Update license headers.
   md-format                 Format Markdown files.
   yaml-format               Format YAML files.
 Linting
   lint                      Run all linters.
   actionlint                Runs the actionlint linter.
+  checkmake                 Runs the checkmake linter.
   commitlint                Run commitlint linter.
   fixme                     Check for outstanding FIXMEs.
+  format-check              Check that files are properly formatted.
   golangci-lint             Runs the golangci-lint linter.
   markdownlint              Runs the markdownlint linter.
   renovate-config-validator Validate Renovate configuration.
@@ -268,14 +273,15 @@ to achieve the highest Tier and score as possible.
     as required:
     - [ ] `DCO`
     - [ ] `actionlint / actionlint`
+    - [ ] `checkmake / checkmake`
     - [ ] `commitlint / commitlint`
-    - [ ] `formatting / formatting`
+    - [ ] `format-check / format-check`
+    - [ ] `fixme / fixme`
     - [ ] `golangci-lint / golangci-lint`
-    - [ ] `license-headers / license-headers`
     - [ ] `markdownlint / markdownlint`
     - [ ] `renovate-config-validator / renovate-config-validator`
     - [ ] `textlint / textlint`
-    - [ ] `fixme / fixme`
+    - [ ] `unit-test / unit-test`
     - [ ] `yamllint / yamllint`
     - [ ] `zizmor / zizmor`
 
@@ -363,6 +369,7 @@ documentation.
 [`Node.js`]: https://nodejs.org/
 [`Python`]: https://www.python.org/
 [`actionlint`]: https://github.com/rhysd/actionlint
+[`checkmake`]: https://github.com/checkmake/checkmake
 [`commitlint`]: https://commitlint.js.org/
 [`mbrukman/autogen`]: https://github.com/mbrukman/autogen
 [`gci`]: https://github.com/daixiang0/gci

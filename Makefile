@@ -159,10 +159,7 @@ $(AQUA_ROOT_DIR)/.installed: .aqua.yaml .bin/aqua-$(AQUA_VERSION)/aqua
 #####################################################################
 
 .PHONY: all
-all: test ## Build everything.
-	@# bash \
-	echo "Nothing to build."
-	exit 1
+all: test build ## Build everything.
 
 GO_SOURCE_FILES := $(shell git ls-files --deduplicate '*.go')
 
@@ -437,7 +434,13 @@ format-check: ## Check that files are properly formatted.
 	exit_code=0; \
 	if [ -n "$$(git diff)" ]; then \
 		>&2 echo "Some files need to be formatted. Please run 'make format' and try again."; \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			echo "::group::git diff"; \
+		fi; \
 		git --no-pager diff; \
+		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+			echo "::endgroup::"; \
+		fi; \
 		exit_code=1; \
 	fi; \
 	git restore .; \

@@ -12,20 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-rules:
-  forbidden-uses:
-    config:
-      allow:
-        # Allow the use of official GitHub Actions
-        - actions/*
-        # Allow the use of official GitHub CodeQL Actions
-        - github/codeql-action/*
+name: golangci-lint
 
-        # Allow the use of the todo-issue-reopener action
-        - ianlewis/todo-issue-reopener
+on:
+  workflow_call:
 
-        # Allow the use of the ossf/scorecard-action
-        - ossf/scorecard-action
+permissions:
+  contents: read
 
-        # Allow the use of the codecov/codecov-action
-        - codecov/codecov-action
+jobs:
+  golangci-lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        with:
+          go-version-file: "go.mod"
+      - run: make golangci-lint

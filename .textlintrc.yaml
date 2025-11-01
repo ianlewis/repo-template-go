@@ -21,6 +21,9 @@ rules:
   spelling:
     language: "en"
     skipPatterns:
+      - "/\\bCodecov\\b/" # Code coverage service
+      - "/\\b[Tt]oolchains?\\b/"
+
       - "/\\bAMD64\\b/g"
       - "/\\bARM64\\b/g"
       - "/\\bCHANGELOG\\b/g"

@@ -23,8 +23,10 @@ SHELL := /usr/bin/env bash -ueo pipefail $(BASH_OPTIONS)
 uname_s := $(shell uname -s)
 uname_m := $(shell uname -m)
 arch.x86_64 := amd64
+arch.arm64 = arm64
 arch = $(arch.$(uname_m))
 kernel.Linux := linux
+kernel.Darwin := darwin
 kernel = $(kernel.$(uname_s))
 
 OUTPUT_FORMAT ?= $(shell if [ "${GITHUB_ACTIONS}" == "true" ]; then echo "github"; else echo ""; fi)
@@ -35,12 +37,18 @@ REPO_NAME = $(shell basename "$(REPO_ROOT)")
 AQUA_VERSION ?= v2.55.0
 AQUA_REPO ?= github.com/aquaproj/aqua
 AQUA_CHECKSUM.Linux.x86_64 = cb7780962ca651c4e025a027b7bfc82c010af25c5c150fe89ad72f4058d46540
+AQUA_CHECKSUM.Darwin.arm64 = 4797caf2d0b60d6ff3eac8c27281d1f23b1dfada4969fd6254f9951dfd83f9cf
 AQUA_CHECKSUM ?= $(AQUA_CHECKSUM.$(uname_s).$(uname_m))
 AQUA_URL = https://$(AQUA_REPO)/releases/download/$(AQUA_VERSION)/aqua_$(kernel)_$(arch).tar.gz
 export AQUA_ROOT_DIR = $(REPO_ROOT)/.aqua
 
 # Ensure that aqua and aqua installed tools are in the PATH.
 export PATH := $(REPO_ROOT)/.bin/aqua-$(AQUA_VERSION):$(AQUA_ROOT_DIR)/bin:$(PATH)
+
+# We want GNU versions of tools so prefer them if present.
+GREP := $(shell command -v ggrep 2>/dev/null || command -v grep 2>/dev/null)
+AWK := $(shell command -v gawk 2>/dev/null || command -v awk 2>/dev/null)
+MKTEMP := $(shell command -v gmktemp 2>/dev/null || command -v mktemp 2>/dev/null)
 
 BENCHTIME ?= 1s
 TESTCOUNT ?= 1
@@ -61,18 +69,18 @@ TESTCOUNT ?= 1
 help: ## Print all Makefile targets (this message).
 	@# bash \
 	echo "$(REPO_NAME) Makefile"; \
-	echo "Usage: make [COMMAND]"; \
+	echo "Usage: $(MAKE) [COMMAND]"; \
 	echo ""; \
 	normal=""; \
 	cyan=""; \
-	if command -v tput >/dev/null 3>&1; then \
+	if command -v tput >/dev/null 2>&1; then \
 		if [ -t 1 ]; then \
 			normal=$$(tput sgr0); \
 			cyan=$$(tput setaf 6); \
 		fi; \
 	fi; \
-	grep --no-filename -E '^([/a-z.A-Z0-9_%-]+:.*?|)##' $(MAKEFILE_LIST) | \
-		awk \
+	$(GREP) --no-filename -E '^([/a-z.A-Z0-9_%-]+:.*?|)##' $(MAKEFILE_LIST) | \
+		$(AWK) \
 			--assign=normal="$${normal}" \
 			--assign=cyan="$${cyan}" \
 			'BEGIN {FS = "(:.*?|)## ?"}; { \
@@ -138,9 +146,9 @@ node_modules/.installed: package-lock.json
 .bin/aqua-$(AQUA_VERSION)/aqua:
 	@# bash \
 	mkdir -p .bin/aqua-$(AQUA_VERSION); \
-	tempfile=$$(mktemp --suffix=".aqua-$(AQUA_VERSION).tar.gz"); \
+	tempfile=$$($(MKTEMP) --suffix=".aqua-$(AQUA_VERSION).tar.gz"); \
 	curl -sSLo "$${tempfile}" "$(AQUA_URL)"; \
-	echo "$(AQUA_CHECKSUM)  $${tempfile}" | sha256sum -c; \
+	echo "$(AQUA_CHECKSUM)  $${tempfile}" | sha256sum -c -; \
 	tar -x -C .bin/aqua-$(AQUA_VERSION) -f "$${tempfile}"
 
 $(AQUA_ROOT_DIR)/.installed: .aqua.yaml .bin/aqua-$(AQUA_VERSION)/aqua
@@ -185,7 +193,14 @@ unit-test: ## Runs all unit tests.
 	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 		extraargs="-v"; \
 	fi; \
-	go test $$extraargs -mod=vendor -race -coverprofile=coverage.out -covermode=atomic ./...
+	go test \
+		$$extraargs \
+		-mod=vendor \
+		-race \
+		-coverprofile=coverage.out \
+		-coverpkg=./... \
+		-covermode=atomic \
+		./...
 
 ## Benchmarking
 #####################################################################
@@ -198,7 +213,14 @@ go-benchmark: ## Runs Go benchmarks.
 	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 		extraargs="-v"; \
 	fi; \
-	go test $$extraargs -mod=vendor -bench=. -count=$(TESTCOUNT) -benchtime=$(BENCHTIME) -run='^#' ./...
+	go test \
+		$$extraargs \
+		-mod=vendor \
+		-bench=. \
+		-count=$(TESTCOUNT) \
+		-benchtime=$(BENCHTIME) \
+		-run='^#' \
+		./...
 
 ## Formatting
 #####################################################################
@@ -218,7 +240,13 @@ go-format: $(AQUA_ROOT_DIR)/.installed ## Format Go files (gofumpt).
 	fi; \
 	gofumpt -l -w $${files}; \
 	goimports -l -w $${files}; \
-	gci write --skip-generated --skip-vendor -s standard -s default -s localmodule $${files}
+	gci write \
+		--skip-generated \
+		--skip-vendor \
+		-s standard \
+		-s default \
+		-s localmodule \
+		$${files}
 
 .PHONY: json-format
 json-format: node_modules/.installed ## Format JSON files.
@@ -270,7 +298,7 @@ license-headers: ## Update license headers.
 		>&2 echo "git config user.name \"John Doe\""; \
 	fi; \
 	for filename in $${files}; do \
-		if ! ( head "$${filename}" | grep -iL "Copyright" > /dev/null ); then \
+		if ! ( head "$${filename}" | $(GREP) -iL "Copyright" > /dev/null ); then \
 			$(REPO_ROOT)/third_party/mbrukman/autogen/autogen.sh \
 				--in-place \
 				--no-code \
@@ -430,7 +458,7 @@ format-check: ## Check that files are properly formatted.
 		>&2 echo "The working directory is dirty. Please commit, stage, or stash changes and try again."; \
 		exit 1; \
 	fi; \
-	make format; \
+	$(MAKE) format; \
 	exit_code=0; \
 	if [ -n "$$(git diff)" ]; then \
 		>&2 echo "Some files need to be formatted. Please run 'make format' and try again."; \
@@ -572,7 +600,7 @@ yamllint: .venv/.installed ## Runs the yamllint linter.
 	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 		format="github"; \
 	fi; \
-	.venv/bin/yamllint \
+	$(REPO_ROOT)/.venv/bin/yamllint \
 		--strict \
 		--config-file .yamllint.yaml \
 		--format "$${format}" \
@@ -593,14 +621,14 @@ zizmor: .venv/.installed ## Runs the zizmor linter.
 		exit 0; \
 	fi; \
 	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
-		.venv/bin/zizmor \
+		$(REPO_ROOT)/.venv/bin/zizmor \
 			--config .zizmor.yml \
 			--quiet \
 			--pedantic \
 			--format sarif \
 			$${files} > zizmor.sarif.json; \
 	fi; \
-	.venv/bin/zizmor \
+	$(REPO_ROOT)/.venv/bin/zizmor \
 		--config .zizmor.yml \
 		--quiet \
 		--pedantic \

@@ -56,8 +56,9 @@ for more recommended security settings.
 
 ## Requirements
 
-This repository template is meant to be used on Linux systems. It may still
-work on MacOS or Windows given a `bash` environment, but this is not tested.
+This repository template is meant to be used on Linux x86-64 (AMD64) systems.
+There is partial support for macOS ARM64 but `checkmake` does not provide an
+ARM64 release binary so it doesn't work on macOS.
 
 In general, dependencies on outside tools should be minimized in favor of
 including them as project-local dependencies.

@@ -63,31 +63,45 @@ ARM64 release binary so it doesn't work on macOS.
 In general, dependencies on outside tools should be minimized in favor of
 including them as project-local dependencies.
 
-The following language runtimes are required. It is recommended to use a tool
-that can manage multiple language runtime versions such as
-[`pyenv`](https://github.com/pyenv/pyenv),
-[`nodenv`](https://github.com/nodenv/nodenv),
-[`nvm`](https://github.com/nvm-sh/nvm), or [`asdf`](https://asdf-vm.com/). This
-repository includes `.node-version` and `.python-version` files to specify the
-language runtime versions to use for maximum compatibility with these tools.
+1. Language runtimes
 
-The Go runtime can manage its own upgrading and versioning via [Go
-Toolchains](https://go.dev/doc/toolchain).
+    The following language runtimes are required. It is recommended to use a tool
+    that can manage multiple language runtime versions such as
+    [`pyenv`](https://github.com/pyenv/pyenv),
+    [`nodenv`](https://github.com/nodenv/nodenv),
+    [`nvm`](https://github.com/nvm-sh/nvm), or [`asdf`](https://asdf-vm.com/). This
+    repository includes `.node-version` and `.python-version` files to specify the
+    language runtime versions to use for maximum compatibility with these tools.
+    - [`Go`]: The Go runtime needs to be installed.
+    - [`Node.js`]: Node.js is required to run some linters and formatters.
+    - [`Python`]: Python is required to run some linters and formatters.
 
-- [`Go`]: The Go runtime needs to be installed.
-- [`Node.js`]: Node.js is required to run some linters and formatters.
-- [`Python`]: Python is required to run some linters and formatters.
+    The Go runtime can manage its own upgrading and versioning via [Go
+    Toolchains](https://go.dev/doc/toolchain).
 
-The following tools need to be installed:
+2. System tools
 
-- [`git`]: For repository management.
-- `awk`, `basename` `bash`, `dirname`, `grep`, `head`, `rm`, `sha256sum`,
-  `uname`: Standard Unix tools.
-- GNU `make`: For running commands.
-- `curl`, `tar`, `gzip`: For extracting archives.
+    The following tools need to be installed:
+    - [`git`]: For repository management.
+    - `awk`, `basename`, `bash`, `dirname`, `grep`, `head`, `mktemp`, `rm`,
+      `sha256sum`, `uname`: Standard Unix tools (GNU version).
+    - GNU `make`: For running commands.
+    - `curl`, `tar`, `gzip`: For extracting archives.
+
+    On macOS you can install the required packages with Homebrew.
+
+    ```bash
+    brew install \
+        make \
+        grep \
+        gawk \
+        coreutils \
+        libyaml \
+        xz
+    ```
 
 The following tools are automatically installed locally to the project and
-don't need to be pre-installed:
+do not need to be pre-installed:
 
 - [`actionlint`]: For linting GitHub Actions workflows (installed by Aqua in
   `.aqua`).

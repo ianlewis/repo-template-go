@@ -55,8 +55,12 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
+      - name: Install GNU make on macOS
+        if: runner.os == 'macOS'
+        run: brew install make
+
       - name: unit tests
-        run: make unit-test
+        run: ${{ runner.os == 'macOS' && 'gmake' || 'make' }} unit-test
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1

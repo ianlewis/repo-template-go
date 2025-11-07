@@ -64,7 +64,7 @@ jobs:
         run: gmake unit-test
 
       - name: unit tests (Linux/Windows)
-        if: runner.os != 'macOS'
+        if: runner.os == 'Linux' || runner.os == 'Windows'
         run: make unit-test
 
       - name: Upload coverage reports to Codecov

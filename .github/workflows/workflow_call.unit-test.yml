@@ -41,9 +41,8 @@ jobs:
           - "1.24"
         os:
           - ubuntu-latest
-          # TODO: Enable tests for relevant OSes.
-          # - macos-latest
-          # - windows-latest
+          - macos-latest
+          - windows-latest
 
     runs-on: ${{ matrix.os }}
     if: ${{ always() }}
@@ -56,7 +55,21 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
-      - name: unit tests
+      - name: Install GNU make on macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install \
+            make \
+            grep \
+            gawk \
+            coreutils
+
+      - name: unit tests (macOS)
+        if: runner.os == 'macOS'
+        run: gmake unit-test
+
+      - name: unit tests (Linux/Windows)
+        if: runner.os == 'Linux' || runner.os == 'Windows'
         run: make unit-test
 
       - name: Upload coverage reports to Codecov

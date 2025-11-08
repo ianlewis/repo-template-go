@@ -57,7 +57,12 @@ jobs:
 
       - name: Install GNU make on macOS
         if: runner.os == 'macOS'
-        run: brew install make
+        run: |
+          brew install \
+            make \
+            grep \
+            gawk \
+            coreutils
 
       - name: unit tests (macOS)
         if: runner.os == 'macOS'

@@ -148,7 +148,7 @@ node_modules/.installed: package-lock.json
 	mkdir -p .bin/aqua-$(AQUA_VERSION); \
 	tempfile=$$($(MKTEMP) --suffix=".aqua-$(AQUA_VERSION).tar.gz"); \
 	curl -sSLo "$${tempfile}" "$(AQUA_URL)"; \
-	echo "$(AQUA_CHECKSUM)  $${tempfile}" | sha256sum -c -; \
+	echo "$(AQUA_CHECKSUM)  $${tempfile}" | shasum -a 256 -c; \
 	tar -x -C .bin/aqua-$(AQUA_VERSION) -f "$${tempfile}"
 
 $(AQUA_ROOT_DIR)/.installed: .aqua.yaml .bin/aqua-$(AQUA_VERSION)/aqua
@@ -295,6 +295,7 @@ license-headers: ## Update license headers.
 		>&2 echo "git user.name is required."; \
 		>&2 echo "Set it up using:"; \
 		>&2 echo "git config user.name \"John Doe\""; \
+		exit 1; \
 	fi; \
 	for filename in $${files}; do \
 		if ! ( head "$${filename}" | $(GREP) -iL "Copyright" > /dev/null ); then \

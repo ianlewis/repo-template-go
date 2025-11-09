@@ -339,6 +339,13 @@ The following tools should be added to the required code scanning results.
 4. [ ] **Push protection:**
        Block pushing commits with secrets in them.
 
+#### Secrets and variables / Actions
+
+Add the repository to [Codecov](https://codecov.io/) for code coverage. View the Codecov
+[Quick Start Guide](https://docs.codecov.com/docs/quick-start) for more information.
+
+- [ ] **`CODECOV_TOKEN`:** add the repository upload token as a repository secret.
+
 ## Conventional commits
 
 This repository template uses [Conventional

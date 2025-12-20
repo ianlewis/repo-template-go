@@ -131,6 +131,36 @@
       "algorithm": "sha256"
     },
     {
+      "id": "github_release/github.com/golangci/golangci-lint/v2.7.1/golangci-lint-2.7.1-darwin-amd64.tar.gz",
+      "checksum": "AD6B614138F4DB8BC5D27C81FC7FFBF55E155EFD6A29618C92D06483BBDFE5B3",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/golangci/golangci-lint/v2.7.1/golangci-lint-2.7.1-darwin-arm64.tar.gz",
+      "checksum": "B4A7B574D47A1E5E3D9E13636B121A4A15303410939F0EF25D1F32696E94D043",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/golangci/golangci-lint/v2.7.1/golangci-lint-2.7.1-linux-amd64.tar.gz",
+      "checksum": "34A9F54D3F970F4BCBC4E75BF5BCE898A888CFB65E5066551ED25708922C201C",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/golangci/golangci-lint/v2.7.1/golangci-lint-2.7.1-linux-arm64.tar.gz",
+      "checksum": "39A932A66AD2068E2B01E60D9497C4B32BF012C423D5243CA06AD8A6C26F35B5",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/golangci/golangci-lint/v2.7.1/golangci-lint-2.7.1-windows-amd64.zip",
+      "checksum": "F769FE89D8862A2888D395863CF07FE95690AA3BB6825319523EE4945345C413",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/golangci/golangci-lint/v2.7.1/golangci-lint-2.7.1-windows-arm64.zip",
+      "checksum": "6585C038499ACB874F04CF38DBCCE97A17A09E2A2BC9F6A7786C6865A1E130A5",
+      "algorithm": "sha256"
+    },
+    {
       "id": "github_release/github.com/ianlewis/todos/v0.12.0/todos-darwin-amd64",
       "checksum": "6F5A294D197A0435490D0416F7F3D8B43652691C1BF9683719157E4A198C866E",
       "algorithm": "sha256"
@@ -538,6 +568,11 @@
     {
       "id": "registries/github_content/github.com/aquaproj/aqua-registry/v4.439.0/registry.yaml",
       "checksum": "9237F032690C0457E435CDED5AB67B75B867F7738855CEAE93C938C3F1DD4773",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "registries/github_content/github.com/aquaproj/aqua-registry/v4.444.0/registry.yaml",
+      "checksum": "233DEDF66E1BC5370EA057FEBC741A86D6C9FB0AF132E1535E06A2C0416920B8",
       "algorithm": "sha256"
     }
   ]

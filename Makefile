@@ -571,12 +571,14 @@ zizmor: .venv/.installed ## Runs the zizmor linter.
 	fi; \
 	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
 		$(REPO_ROOT)/.venv/bin/zizmor \
+			--config "$(REPO_ROOT)/.zizmor.yml" \
 			--quiet \
 			--pedantic \
 			--format sarif \
 			$${files} > zizmor.sarif.json; \
 	fi; \
 	$(REPO_ROOT)/.venv/bin/zizmor \
+		--config "$(REPO_ROOT)/.zizmor.yml" \
 		--quiet \
 		--pedantic \
 		--format plain \

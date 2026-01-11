@@ -52,6 +52,9 @@ GREP := $(shell command -v ggrep 2>/dev/null || command -v grep 2>/dev/null)
 AWK := $(shell command -v gawk 2>/dev/null || command -v awk 2>/dev/null)
 MKTEMP := $(shell command -v gmktemp 2>/dev/null || command -v mktemp 2>/dev/null)
 
+BENCHTIME ?= 1s
+TESTCOUNT ?= 1
+
 # The help command prints targets in groups. Help documentation in the Makefile
 # uses comments with double hash marks (##). Documentation is printed by the
 # help target in the order in appears in the Makefile.
@@ -165,25 +168,87 @@ $(AQUA_ROOT_DIR)/.installed: .aqua.yaml .bin/aqua-$(AQUA_VERSION)/aqua
 ## Build
 #####################################################################
 
-# TODO: Add all target dependencies.
 .PHONY: all
-all: test ## Build everything.
+all: test build ## Build everything.
+
+GO_SOURCE_FILES := $(shell git ls-files --deduplicate '*.go')
+
+.PHONY: build
+build: $(REPO_NAME) ## Build the main binary.
+
+$(REPO_NAME): $(GO_SOURCE_FILES)
+	echo $(GO_SOURCE_FILES)
 	@# bash \
-	echo "Nothing to build."
-	exit 1
+	go build -o $@ .
 
 ## Testing
 #####################################################################
 
-# TODO: Add test target dependencies.
 .PHONY: test
-test: lint ## Run all tests.
+test: lint unit-test ## Run all linters and tests.
+
+.PHONY: unit-test
+unit-test: ## Runs all unit tests.
+	@# bash \
+	go mod vendor; \
+	extraargs=""; \
+	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+		extraargs="-v"; \
+	fi; \
+	go test \
+		$$extraargs \
+		-mod=vendor \
+		-race \
+		-coverprofile=coverage.out \
+		-coverpkg=./... \
+		-covermode=atomic \
+		./...
+
+## Benchmarking
+#####################################################################
+
+.PHONY: go-benchmark
+go-benchmark: ## Runs Go benchmarks.
+	@# bash \
+	go mod vendor; \
+	extraargs=""; \
+	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
+		extraargs="-v"; \
+	fi; \
+	go test \
+		$$extraargs \
+		-mod=vendor \
+		-bench=. \
+		-count=$(TESTCOUNT) \
+		-benchtime=$(BENCHTIME) \
+		-run='^#' \
+		./...
 
 ## Formatting
 #####################################################################
 
 .PHONY: format
-format: json-format license-headers md-format yaml-format ## Format all files
+format: go-format json-format license-headers md-format yaml-format ## Format all files
+
+.PHONY: go-format
+go-format: $(AQUA_ROOT_DIR)/.installed ## Format Go files (gofumpt).
+	@# bash \
+	files=$$( \
+		git ls-files --deduplicate \
+			'*.go' \
+	); \
+	if [ "$${files}" == "" ]; then \
+		exit 0; \
+	fi; \
+	gofumpt -l -w $${files}; \
+	goimports -l -w $${files}; \
+	gci write \
+		--skip-generated \
+		--skip-vendor \
+		-s standard \
+		-s default \
+		-s localmodule \
+		$${files}
 
 .PHONY: json-format
 json-format: node_modules/.installed ## Format JSON files.
@@ -246,7 +311,6 @@ license-headers: ## Update license headers.
 		fi; \
 	done
 
-
 .PHONY: md-format
 md-format: node_modules/.installed ## Format Markdown files.
 	@# bash \
@@ -294,7 +358,7 @@ yaml-format: node_modules/.installed ## Format YAML files.
 #####################################################################
 
 .PHONY: lint
-lint: actionlint checkmake commitlint fixme format-check markdownlint renovate-config-validator textlint yamllint zizmor ## Run all linters.
+lint: actionlint checkmake commitlint fixme format-check golangci-lint markdownlint renovate-config-validator textlint yamllint zizmor ## Run all linters.
 
 .PHONY: actionlint
 actionlint: $(AQUA_ROOT_DIR)/.installed ## Runs the actionlint linter.
@@ -407,6 +471,11 @@ format-check: ## Check that files are properly formatted.
 	fi; \
 	git restore .; \
 	exit "$${exit_code}"
+
+.PHONY: golangci-lint
+golangci-lint: $(AQUA_ROOT_DIR)/.installed ## Runs the golangci-lint linter.
+	@# bash \
+	golangci-lint run -c .golangci.yml ./...
 
 .PHONY: markdownlint
 markdownlint: node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the markdownlint linter.
@@ -537,3 +606,5 @@ clean: ## Delete temporary files.
 	@$(RM) -r .venv
 	@$(RM) -r node_modules
 	@$(RM) *.sarif.json
+	@$(RM) -r vendor
+	@$(RM) coverage.out

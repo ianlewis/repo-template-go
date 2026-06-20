@@ -92,5 +92,10 @@
       matchDepTypes: ["devDependencies"],
       groupName: "npm dev",
     },
+    {
+      matchManagers: ["gomod"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "go",
+    },
   ],
 }

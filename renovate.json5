@@ -86,6 +86,11 @@
       pinDigests: true,
     },
     {
+      matchManagers: ["pep621"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "pep621",
+    },
+    {
       matchManagers: ["pip_requirements"],
       matchUpdateTypes: ["minor", "patch"],
       groupName: "python",

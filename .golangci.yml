@@ -361,7 +361,7 @@ linters:
 
     # Add or remove empty lines.
     # NOTE: wsl isn't bad necessarily, but it can be very noisy.
-    - wsl
+    - wsl_v5
 
     # Detects the wrong usage of zerolog that a user forgets to dispatch with
     # Send or Msg.
@@ -545,3 +545,9 @@ linters:
       - common-false-positives
       - legacy
       - std-error-handling
+
+    paths:
+      # Exclude all files in the vendor directory.
+      - "vendor/"
+      - "node_modules/"
+      - "third_party/"

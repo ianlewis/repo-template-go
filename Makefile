@@ -29,7 +29,7 @@ GO_SOURCE_FILES := $(shell git ls-files --deduplicate '*.go')
 build: $(REPO_NAME) ## Build the main binary.
 
 $(REPO_NAME): $(GO_SOURCE_FILES)
-	@# bash \
+	@echo "Building $@..."
 	go build -o $@ .
 
 ## Testing
@@ -40,12 +40,12 @@ test: lint unit-test ## Run all linters and tests.
 
 .PHONY: unit-test
 unit-test: ## Runs all unit tests.
-	@# bash \
-	go mod vendor; \
-	extraargs=""; \
-	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
-		extraargs="-v"; \
-	fi; \
+	@echo "Running unit tests..."
+	go mod vendor
+	extraargs=""
+	if [ "$(OUTPUT_FORMAT)" == "github" ]; then
+		extraargs="-v"
+	fi
 	go test \
 		$${extraargs} \
 		-mod=vendor \
@@ -60,12 +60,12 @@ unit-test: ## Runs all unit tests.
 
 .PHONY: go-benchmark
 go-benchmark: ## Runs Go benchmarks.
-	@# bash \
-	go mod vendor; \
-	extraargs=""; \
-	if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
-		extraargs="-v"; \
-	fi; \
+	@echo "Running Go benchmarks..."
+	go mod vendor
+	extraargs=""
+	if [ "$(OUTPUT_FORMAT)" == "github" ]; then
+		extraargs="-v"
+	fi
 	go test \
 		$${extraargs} \
 		-mod=vendor \
@@ -83,16 +83,16 @@ format: go-format json-format license-headers md-format yaml-format ## Format al
 
 .PHONY: go-format
 go-format: $(AQUA_ROOT_DIR)/.installed ## Format Go files (gofumpt).
-	@# bash \
-	files=$$( \
+	@echo "Formatting Go files..."
+	files=$$(
 		git ls-files --deduplicate \
-			'*.go' \
-	); \
-	if [ "$${files}" == "" ]; then \
-		exit 0; \
-	fi; \
-	gofumpt -l -w $${files}; \
-	goimports -l -w $${files}; \
+			'*.go'
+	)
+	if [ "$${files}" == "" ]; then
+		exit 0
+	fi
+	gofumpt -l -w $${files}
+	goimports -l -w $${files}
 	gci write \
 		--skip-generated \
 		--skip-vendor \
@@ -319,7 +319,7 @@ format-check: ## Check that files are properly formatted.
 
 .PHONY: golangci-lint
 golangci-lint: $(AQUA_ROOT_DIR)/.installed ## Runs the golangci-lint linter.
-	@# bash \
+	@echo "Running golangci-lint..."
 	golangci-lint run -c .golangci.yml ./...
 
 .PHONY: markdownlint

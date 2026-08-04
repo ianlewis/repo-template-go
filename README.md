@@ -283,13 +283,13 @@ lands as a single commit on your commit history.
 
 ```shell
 # One time step: Add the repository template as a remote.
-git remote add repo-template git@github.com:ianlewis/repo-template.git
+git remote add repo-template-go git@github.com:ianlewis/repo-template-go.git
 
-# Fetch the latest version of the repo-template.
-git fetch repo-template main
+# Fetch the latest version of the repo-template-go.
+git fetch repo-template-go main
 
 # Create a new squash merge commit.
-git merge --no-edit --signoff --squash --allow-unrelated-histories repo-template/main
+git merge --no-edit --signoff --squash --allow-unrelated-histories repo-template-go/main
 ```
 
 ## Repository Creation Checklist

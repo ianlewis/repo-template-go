@@ -75,6 +75,22 @@ go-benchmark: ## Runs Go benchmarks.
 		-run='^#' \
 		./...
 
+## Fix
+#####################################################################
+
+.PHONY: fix
+fix: go-fix golangci-lint-fix ## Runs all automated fixes
+
+.PHONY: go-fix
+go-fix: ## Runs go fix
+	@echo "Running go fix..."
+	go fix ./...
+
+.PHONY: golangci-lint-fix
+golangci-lint-fix: ## Runs golangci-lint --fix
+	@echo "Running golangci-lint --fix..."
+	golangci-lint run -c .golangci.yml --fix ./...
+
 ## Formatting
 #####################################################################
 

@@ -1,4 +1,4 @@
-# Copyright 2024 Ian Lewis
+# Copyright 2025 Ian Lewis
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: fixme
+name: golangci-lint
 
 on:
   workflow_call:
@@ -21,20 +21,24 @@ permissions:
   contents: read
 
 concurrency:
-  group: fixme-${{ github.event.pull_request.number || github.ref }}
+  group: golangci-lint-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  fixme:
-    name: fixme
+  golangci-lint:
+    name: golangci-lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          submodules: recursive
+          submodules: true
 
-      - name: fixme
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: "go.mod"
+
+      - name: golangci-lint
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: make fixme
+        run: make golangci-lint

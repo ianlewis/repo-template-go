@@ -14,27 +14,92 @@
 
 include include.mk
 
+BENCHTIME ?= 1s
+TESTCOUNT ?= 1
+
 ## Build
 #####################################################################
 
-# TODO: Add all target dependencies.
 .PHONY: all
-all: test ## Build everything.
-	@echo "Nothing to build."
-	exit 1
+all: test build ## Build everything.
+
+GO_SOURCE_FILES := $(shell git ls-files --deduplicate '*.go')
+
+.PHONY: build
+build: $(REPO_NAME) ## Build the main binary.
+
+$(REPO_NAME): $(GO_SOURCE_FILES)
+	@echo "Building $@..."
+	go build -o $@ .
 
 ## Testing
 #####################################################################
 
-# TODO: Add test target dependencies.
 .PHONY: test
-test: lint ## Run all tests.
+test: lint unit-test ## Run all linters and tests.
+
+.PHONY: unit-test
+unit-test: ## Runs all unit tests.
+	@echo "Running unit tests..."
+	go mod vendor
+	extraargs=""
+	if [ "$(OUTPUT_FORMAT)" == "github" ]; then
+		extraargs="-v"
+	fi
+	go test \
+		$${extraargs} \
+		-mod=vendor \
+		-race \
+		-coverprofile=coverage.out \
+		-coverpkg=./... \
+		-covermode=atomic \
+		./...
+
+## Benchmarking
+#####################################################################
+
+.PHONY: go-benchmark
+go-benchmark: ## Runs Go benchmarks.
+	@echo "Running Go benchmarks..."
+	go mod vendor
+	extraargs=""
+	if [ "$(OUTPUT_FORMAT)" == "github" ]; then
+		extraargs="-v"
+	fi
+	go test \
+		$${extraargs} \
+		-mod=vendor \
+		-bench=. \
+		-count=$(TESTCOUNT) \
+		-benchtime=$(BENCHTIME) \
+		-run='^#' \
+		./...
 
 ## Formatting
 #####################################################################
 
 .PHONY: format
-format: json-format md-format yaml-format ## Format all files
+format: go-format json-format md-format yaml-format ## Format all files
+
+.PHONY: go-format
+go-format: $(AQUA_ROOT_DIR)/.installed ## Format Go files (gofumpt).
+	@echo "Formatting Go files..."
+	files=$$(
+		git ls-files --deduplicate \
+			'*.go'
+	)
+	if [ "$${files}" == "" ]; then
+		exit 0
+	fi
+	gofumpt -l -w $${files}
+	goimports -l -w $${files}
+	gci write \
+		--skip-generated \
+		--skip-vendor \
+		-s standard \
+		-s default \
+		-s localmodule \
+		$${files}
 
 .PHONY: json-format
 json-format: $(REPO_ROOT)/node_modules/.installed ## Format JSON files.
@@ -105,7 +170,7 @@ yaml-format: $(REPO_ROOT)/node_modules/.installed ## Format YAML files.
 #####################################################################
 
 .PHONY: lint
-lint: actionlint checkmake commitlint fixme format-check markdownlint renovate-config-validator textlint yamllint zizmor ## Run all linters.
+lint: actionlint checkmake commitlint fixme format-check golangci-lint markdownlint renovate-config-validator textlint yamllint zizmor ## Run all linters.
 
 .PHONY: actionlint
 actionlint: $(AQUA_ROOT_DIR)/.installed ## Runs the actionlint linter.
@@ -213,6 +278,11 @@ format-check: ## Check that files are properly formatted.
 	fi
 	git restore .
 	exit "$${exit_code}"
+
+.PHONY: golangci-lint
+golangci-lint: $(AQUA_ROOT_DIR)/.installed ## Runs the golangci-lint linter.
+	@echo "Running golangci-lint..."
+	golangci-lint run -c .golangci.yml ./...
 
 .PHONY: markdownlint
 markdownlint: $(REPO_ROOT)/node_modules/.installed $(AQUA_ROOT_DIR)/.installed ## Runs the markdownlint linter.
@@ -373,3 +443,7 @@ clean: clean-node-modules ## Delete temporary files.
 	$(RM) -r .venv
 	$(RM) -r .uv
 	$(RM) *.sarif.json
+	$(RM) -r vendor
+	$(RM) coverage.out
+	# Delete the main binary if it exists
+	$(RM) $(REPO_NAME)

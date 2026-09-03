@@ -126,5 +126,10 @@
       automerge: true,
       platformAutomerge: true,
     },
+    {
+      matchManagers: ["gomod"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "go",
+    },
   ],
 }

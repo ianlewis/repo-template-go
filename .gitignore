@@ -2,6 +2,7 @@
 .git/
 
 # Dependency directories (remove the comment below to include it)
+vendor/
 node_modules/
 .bin/
 .venv/
@@ -15,3 +16,19 @@ node_modules/
 __pycache__/
 *.egg-info/
 *.pyc
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# TODO: update the binary name.
+repo-template-go

@@ -25,3 +25,7 @@ indent_style = tab
 [{*.json,*.yml,*.yaml}]
 indent_style = space
 indent_size = 2
+
+# Matches Go files.
+[*.go]
+indent_style = tab

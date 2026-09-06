@@ -38,7 +38,7 @@ wheels = [
 ]
 
 [[package]]
-name = "repo-template"
+name = "repo-template-go"
 version = "0.0.0"
 source = { editable = "." }
 

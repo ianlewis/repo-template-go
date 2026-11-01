@@ -69,15 +69,28 @@ jobs:
           fail-fast: false
           commit-message: "fix(all): formatting"
 
+      - name: apply fixes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: make fix
+
+      - uses: autofix-ci/action@c5b2d67aa2274e7b5a18224e8171550871fc7e4a # v1.3.4
+        id: fix
+        with:
+          fail-fast: false
+          commit-message: "fix(all): apply fixes"
+
       - name: check autofix
         env:
           LOCKFILES_AUTOFIXED: "${{ steps.lockfiles.outputs.autofix_started }}"
           FORMATTING_AUTOFIXED: "${{ steps.formatting.outputs.autofix_started }}"
+          FIX_AUTOFIXED: "${{ steps.fix.outputs.autofix_started }}"
         run: |
           set -euo pipefail
           # If either autofix was started then fail here.
           [[ "${LOCKFILES_AUTOFIXED}" != "true" ]]
           [[ "${FORMATTING_AUTOFIXED}" != "true" ]]
+          [[ "${FIX_AUTOFIXED}" != "true" ]]
 
   # Call tests directly after running autofix. We use workflow_call so that the
   # tests run in the context of the pull_request or push ref. The workflow_run

@@ -103,7 +103,7 @@ make markdownlint
 
 #### Commit and Push Your Code
 
-Make sure to stage any change or new files or new files.
+Make sure to stage any changes or new files.
 
 ```shell
 git add .
